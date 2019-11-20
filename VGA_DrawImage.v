@@ -82,43 +82,44 @@ module VGA_Draw(
                             end
                                 
                    		
-                        if ((Val_Col_In >= yPosition) & (Val_Col_In <= yPosition + yWidth) & (Val_Row_In >= xPosition) & (Val_Row_In <= xPosition + xWidth))
-                            begin
-								PrevY = yPosition;
-								PrevX = xPosition;
+		if ((Val_Col_In >= yPosition) & (Val_Col_In <= yPosition + yWidth) & (Val_Row_In >= xPosition) & (Val_Row_In <= xPosition + xWidth))
+			begin
+				PrevY = yPosition;
+				PrevX = xPosition;
 
-								if (PrevY > yPosition)    
-									begin
-										Tank_XInput = Val_Col_In - xPosition;
-										Tank_YInput = Val_Row_In - yPosition;
-									end
-								else
-									begin
-										Tank_XInput = XWidth - (Val_Col_In - xPosition);
-										Tank_YInput = YWidth - (Val_Row_In - yPosition);
-									end
-								
-								if (PrevX > xPosition)    
-									begin
-										Tank_XInput = Val_Row_In - xPosition;
-										Tank_YInput = Val_Col_In - yPosition;
-									end
-								else
-									begin
-										Tank_XInput = XWidth - (Val_Col_In - xPosition);
-										Tank_YInput = YWidth - (Val_Row_In - yPosition);
-									end
-								
-								
-								
-								Red   = Colour_Data_Tank[11:8];
-								Blue  = Colour_Data_Tank[7:4];
-								Green = Colour_Data_Tank[3:0];
-							end
+				if (Down == 1)    
+					begin
+						Tank_XInput = XWidth - (Val_Col_In - xPosition);
+						Tank_YInput = YWidth - (Val_Row_In - yPosition);
+					end
+				
+			    else if (Left == 1)    
+					begin
+						Tank_XInput = Val_Row_In - xPosition;
+						Tank_YInput = Val_Col_In - yPosition;
+					end
+				
+				else if (Right == 1)
+					begin
+						Tank_XInput = XWidth - (Val_Col_In - xPosition);
+						Tank_YInput = YWidth - (Val_Row_In - yPosition);
+					end
+				
+				else
+					begin
+						Tank_XInput = Val_Col_In - xPosition;
+						Tank_YInput = Val_Row_In - yPosition;
+					end
 
-						else
-							begin
-								Red    = 4'hF;
+
+				Red   = Colour_Data_Tank[11:8];
+				Blue  = Colour_Data_Tank[7:4];
+				Green = Colour_Data_Tank[3:0];
+			end
+
+		else
+			begin
+				Red    = 4'hF;
                                 Green  = 4'hF;
                                 Blue   = 4'hF;
                             end            
