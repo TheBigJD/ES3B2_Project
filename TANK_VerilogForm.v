@@ -3623,3 +3623,11 @@ Inputs = {a, b};
 20'b00001110010000111011 : ColourData = 12'hFFF;
 20'b00001110100000111011 : ColourData = 12'hFFF;
 20'b00001110110000111011 : ColourData = 12'hFFF;
+
+
+default: ColourData = 12'h000;
+
+endcase
+end
+
+endmodule
