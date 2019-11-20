@@ -29,8 +29,8 @@ module VGA_Draw(
 	wire [11:0] Colour_Data_Background;
 	wire [11:0] Colour_Data_Tank;
     	
-	reg [9:0] Tank_XInput, Tank_YInput;	
-	
+	reg [9:0] Tank_XInput, Tank_YInput = 10'b0;	
+	reg [9:0] PrevX, PrevY = 10'b0;
 	
 	Bottle M4 (.Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Background));
 	
@@ -81,28 +81,44 @@ module VGA_Draw(
                                     xPosition = xPosition + 1;
                             end
                                 
-                    
-                        //Box Settings
-                        // If we want to make this a more complex shape, such as a hollow rectangle, then this become either an OR statement where we plot
-                        //      just the boundary lines, or we plot two rectangles - one the colour of the outline, and one the colour as the background behind it.
-                        // Think the first option is more robust, but it the second should work.
-                        
+                   		
                         if ((Val_Col_In >= yPosition) & (Val_Col_In <= yPosition + yWidth) & (Val_Row_In >= xPosition) & (Val_Row_In <= xPosition + xWidth))
                             begin
-				Tank_XInput = Val_Col_In - xPosition;
-				Tank_YInput = Val_Row_In - yPosition;
-				    
-				Red   = Colour_Data_Tank[11:8];
-				Blue  = Colour_Data_Tank[7:4];
-				Green = Colour_Data_Tank[3:0];
-                            end
-                            
-                        else
-                            begin
-				//Red    = Colour_Data_Background[11:8];
-                                //Green  = Colour_Data_Background[7:4];
-                                //Blue   = Colour_Data_Background[3:0];
-				Red    = 4'hF;
+								PrevY = yPosition;
+								PrevX = xPosition;
+
+								if (PrevY > yPosition)    
+									begin
+										Tank_XInput = Val_Col_In - xPosition;
+										Tank_YInput = Val_Row_In - yPosition;
+									end
+								else
+									begin
+										Tank_XInput = XWidth - (Val_Col_In - xPosition);
+										Tank_YInput = YWidth - (Val_Row_In - yPosition);
+									end
+								
+								if (PrevX > xPosition)    
+									begin
+										Tank_XInput = Val_Row_In - xPosition;
+										Tank_YInput = Val_Col_In - yPosition;
+									end
+								else
+									begin
+										Tank_XInput = XWidth - (Val_Col_In - xPosition);
+										Tank_YInput = YWidth - (Val_Row_In - yPosition);
+									end
+								
+								
+								
+								Red   = Colour_Data_Tank[11:8];
+								Blue  = Colour_Data_Tank[7:4];
+								Green = Colour_Data_Tank[3:0];
+							end
+
+						else
+							begin
+								Red    = 4'hF;
                                 Green  = 4'hF;
                                 Blue   = 4'hF;
                             end            
