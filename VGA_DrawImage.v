@@ -13,7 +13,7 @@ module VGA_Draw(
 	parameter Pixels_Vert  = 480; //Num of Pixels in Y axis
 	
 	reg [9:0] xPosition = 305; // Value is 1/2(Horiz Pixels + xWidth)
-	parameter xWidth = 30;// random value i thought would be big enoguh to show up. if it's not increase it by a chunk
+	parameter xWidth = 60;// random value i thought would be big enoguh to show up. if it's not increase it by a chunk
 	
 	reg [9:0] yPosition = 225; // Value is 1/2(Vert Pixels + yWidth)
 	parameter yWidth = 60;// same as for xWidth 
@@ -89,12 +89,12 @@ module VGA_Draw(
                         
                         if ((Val_Col_In >= yPosition) & (Val_Col_In <= yPosition + yWidth) & (Val_Row_In >= xPosition) & (Val_Row_In <= xPosition + xWidth))
                             begin
-								Tank_XInput = Val_Col_In - xPosition;
-								Tank_YInput = Val_Row_In - yPosition;
+				Tank_XInput = Val_Col_In - xPosition;
+				Tank_YInput = Val_Row_In - yPosition;
 				    
-								Red   = Colour_Data_Tank[11:8];
-			  				  	Blue  = Colour_Data_Tank[7:4];
-			    				Green = Colour_Data_Tank[3:0];
+				Red   = Colour_Data_Tank[11:8];
+				Blue  = Colour_Data_Tank[7:4];
+				Green = Colour_Data_Tank[3:0];
                             end
                             
                         else
