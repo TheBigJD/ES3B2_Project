@@ -99,9 +99,12 @@ module VGA_Draw(
                             
                         else
                             begin
-		    					Red    = Colour_Data_Background[11:8];
-                                Green  = Colour_Data_Background[7:4];
-                                Blue   = Colour_Data_Background[3:0];
+				//Red    = Colour_Data_Background[11:8];
+                                //Green  = Colour_Data_Background[7:4];
+                                //Blue   = Colour_Data_Background[3:0];
+				Red    = 4'hF;
+                                Green  = 4'hF;
+                                Blue   = 4'hF;
                             end            
                     end
                 else
