@@ -15,7 +15,6 @@ module VGA_Draw(
 	reg [9:0] xPosition = 305; // Value is 1/2(Horiz Pixels + xWidth)
 	parameter xWidth = 30;// random value i thought would be big enoguh to show up. if it's not increase it by a chunk
 	
-	
 	reg [9:0] yPosition = 225; // Value is 1/2(Vert Pixels + yWidth)
 	parameter yWidth = 60;// same as for xWidth 
 	
@@ -27,9 +26,15 @@ module VGA_Draw(
 //	reg [0:8] Pix_Green [0:8][3:0];
 //	reg [3:0] Red, Blue, Green;
     
-    wire [11:0] Colour_Data;
-    
-	Bottle M4 (.Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data));
+	wire [11:0] Colour_Data_Background;
+	wire [11:0] Colour_Data_Tank;
+    	
+	reg [9:0] Tank_XInput, Tank_YInput;	
+	
+	
+	Bottle M4 (.Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Background));
+	
+	Tank_VerilogForm Get_Tanked_Bitches (.Master_Clock_In(Master_Clock_In), .xInput(Tank_XInput), .yInput(Tank_YInput), .ColourData(Colour_Data_Tank));
            
 	always @(posedge Master_Clock_In)	
 	begin
@@ -84,16 +89,19 @@ module VGA_Draw(
                         
                         if ((Val_Col_In >= yPosition) & (Val_Col_In <= yPosition + yWidth) & (Val_Row_In >= xPosition) & (Val_Row_In <= xPosition + xWidth))
                             begin
-                                Red = 4'hA;
-                                Blue = 4'hA;
-                                Green = 4'hA;
+								Tank_XInput = Val_Col_In - xPosition;
+								Tank_YInput = Val_Row_In - yPosition;
+				    
+								Red   = Colour_Data_Tank[11:8];
+			  				  	Blue  = Colour_Data_Tank[7:4];
+			    				Green = Colour_Data_Tank[3:0];
                             end
                             
                         else
                             begin
-                                Red    = Colour_Data[11:8];
-                                Green  = Colour_Data[7:4];
-                                Blue   = Colour_Data[3:0];
+		    					Red    = Colour_Data_Background[11:8];
+                                Green  = Colour_Data_Background[7:4];
+                                Blue   = Colour_Data_Background[3:0];
                             end            
                     end
                 else
