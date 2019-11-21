@@ -100,16 +100,16 @@ module VGA_Draw(
 						Tank_YInput = YWidth - (Val_Row_In - yPosition);
 					end
 				
-			    else if (Left == 1)    
+			       else if (Left == 1)    
 					begin
-						Tank_XInput = Val_Row_In - xPosition;
-						Tank_YInput = Val_Col_In - yPosition;
+						Tank_YInput = Val_Row_In - xPosition;
+						Tank_XInput = Val_Col_In - yPosition;
 					end
 				
 				else if (Right == 1)
 					begin
-						Tank_XInput = XWidth - (Val_Col_In - xPosition);
-						Tank_YInput = YWidth - (Val_Row_In - yPosition);
+						Tank_YInput = XWidth - (Val_Col_In - xPosition);
+						Tank_XInput = YWidth - (Val_Row_In - yPosition);
 					end
 				
 				else
@@ -139,7 +139,7 @@ module VGA_Draw(
 					begin
 						Red 	= 4'hF;
 						Green 	= 4'hF;
-						Blue 	= 4'hF;
+						Blue 	= 4'h0;
 						
 					end
 				
