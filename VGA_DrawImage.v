@@ -15,11 +15,10 @@ parameter Pixels_Vert  = 480; //Num of Pixels in Y axis
 
 parameter EdgeWidth = 0;
 
-reg [9:0] xPosition = 0; // Value is 1/2(Horiz Pixels + xWidth)
-reg [9:0] yPosition = 0; // Value is 1/2(Vert Pixels + yWidth)
+reg [9:0] xPosition = 0; // Value is 1/2(Horiz Pixels + TankWidth)
+reg [9:0] yPosition = 0; // Value is 1/2(Vert Pixels + TankWidth)
 
-parameter yWidth = 30 ;// same as for xWidth 
-parameter xWidth = 30 ;// random value i thought would be big enoguh to show up. if it's not increase it by a chunk
+parameter TankWidth = 25 ;// same as for TankWidth 
 
 reg [3:0] Colour_Counter = 0;
 reg [15:0] Clock_Div = 0;
@@ -35,8 +34,11 @@ wire [11:0] Colour_Data_Tank;
 reg [9:0] Tank_XInput, Tank_YInput = 10'b0;	
 reg [9:0] PrevX, PrevY = 10'b0;
 
-reg [9:0] xDivPos, yDivPos;
-reg [9:0] Tank_xDivPos, Tank_yDivPos, Tank_xDivPos_1, Tank_yDivPos_1;
+reg [9:0] xDivPos, yDivPos;	
+	
+reg [9:0] Tank_xDivPos_1, Tank_yDivPos_1;
+reg [9:0] Tank_xDivPos_2, Tank_yDivPos_2;
+reg [9:0] Tank_xPos2_Holder, Tank_yPos2_Holder;
 
 reg [0:79] TankArray_1 = 80'b0;
 reg [3:0] TankArray_X_1 = 4'b0;
@@ -132,111 +134,140 @@ always @(posedge Master_Clock_In)
                             if ((Val_Col_In == Pixels_Vert) & (Val_Row_In == Pixels_Horiz))
                                 begin
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                                     // If y-coordinate is at screen limit, move to other side of screen
                                     if (yPosition == EdgeWidth)
-                                        yPosition = Pixels_Vert - yWidth;
-                                    else if (yPosition == Pixels_Vert - yWidth - EdgeWidth)
+                                        yPosition = Pixels_Vert - TankWidth;
+                                    else if (yPosition == Pixels_Vert - TankWidth - EdgeWidth)
                                         yPosition = 0;
 
                                     //if x-coordinate is at screen limit, move to other side of screen
                                     if (xPosition == EdgeWidth)
-                                        xPosition = Pixels_Horiz - xWidth;
-                                    else if (xPosition == Pixels_Horiz - xWidth - EdgeWidth)
+                                        xPosition = Pixels_Horiz - TankWidth;
+                                    else if (xPosition == Pixels_Horiz - TankWidth - EdgeWidth)
                                         xPosition = 0;
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////                    
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////                    
                                     //Setting Bounding boxes for tank control. Looking for box state at x and y positions
                                     Tank_xDivPos_1 = xPosition[9:5]%20;
                                     Tank_yDivPos_1 = yPosition[9:5]%15;
                                     
-                                    Tank_xDivPos = ((xPosition + 20)/32)%20;
-                                    Tank_yDivPos = ((yPosition + 20)/32)%15;
-                                    
+									Tank_xPos2_Holder = xPosition + 20;
+									Tank_yPos2_Holder = yPosition + 20;
+					
+                                    Tank_xDivPos = Tank_xPos2_Holder[9:5]%20;
+                                    Tank_yDivPos = Tank_yPos2_Holder[9:5]%15;
                                     
                                     //Bottom left
-                                    TankArray_1   = MapArray[Tank_yDivPos_1];
-                                    TankArray_1_3 = TankArray_1[4*Tank_xDivPos_1];
-                                    TankArray_1_2 = TankArray_1[4*Tank_xDivPos_1+1];
-                                    TankArray_1_1 = TankArray_1[4*Tank_xDivPos_1+2];
-                                    TankArray_1_0 = TankArray_1[4*Tank_xDivPos_1+3];
-                                    TankArray_X_1 = {TankArray_1_3,
- TankArray_1_2, TankArray_1_1, TankArray_1_0};
+                                    TankArray_1   = MapArray[Tank_yDivPos_1];// This is the array for the map containing the 'bottom left#' of the tank
+                                    TankArray_1_3 = TankArray_1[4*Tank_xDivPos_1  ];// This is bit 3 of [3:0] of the current position's status.
+                                    TankArray_1_2 = TankArray_1[4*Tank_xDivPos_1+1];// This is bit 2 of [3:0] of the current position's status.
+                                    TankArray_1_1 = TankArray_1[4*Tank_xDivPos_1+2];// This is bit 1 of [3:0] of the current position's status.v
+                                    TankArray_1_0 = TankArray_1[4*Tank_xDivPos_1+3];// This is bit 0 of [3:0] of the current position's status.
+									
+                                    TankArray_X_1 = {TankArray_1_3, TankArray_1_2, TankArray_1_1, TankArray_1_0};
+									//This then returns the state of the box for the bottom-left point of the tank, allowing for the game logic to perform functions depending
+									//		on the position of the tank.
+									
+									// The same logic repeats for each corner of the tank.
+									
+									
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////  
                                     //Bottom right
                                     TankArray_2   = MapArray[Tank_yDivPos_1];
-                                    TankArray_2_3 = TankArray_2[4*(Tank_xDivPos )];
+                                    TankArray_2_3 = TankArray_2[4*(Tank_xDivPos )  ];
                                     TankArray_2_2 = TankArray_2[4*(Tank_xDivPos )+1];
                                     TankArray_2_1 = TankArray_2[4*(Tank_xDivPos )+2];
                                     TankArray_2_0 = TankArray_2[4*(Tank_xDivPos )+3];
-                                    TankArray_X_2 = {TankArray_2_3, TankArray_2_2, TankArray_2_1, TankArray_2_0};   
+                                    TankArray_X_2 = {TankArray_2_3, TankArray_2_2, TankArray_2_1, TankArray_2_0}; 
+									
                                     //Top left
                                     TankArray_3   = MapArray[Tank_yDivPos ];
-                                    TankArray_3_3 = TankArray_3[4*(Tank_xDivPos_1)];
+                                    TankArray_3_3 = TankArray_3[4*(Tank_xDivPos_1)  ];
                                     TankArray_3_2 = TankArray_3[4*(Tank_xDivPos_1)+1];
                                     TankArray_3_1 = TankArray_3[4*(Tank_xDivPos_1)+2];
                                     TankArray_3_0 = TankArray_3[4*(Tank_xDivPos_1)+3];
                                     TankArray_X_3 = {TankArray_3_3, TankArray_3_2, TankArray_3_1, TankArray_3_0};   
+									
                                     //Top right
                                     TankArray_4   = MapArray[Tank_yDivPos ];
-                                    TankArray_4_3 = TankArray_4[4*(Tank_xDivPos)];
+                                    TankArray_4_3 = TankArray_4[4*(Tank_xDivPos)   ];
                                     TankArray_4_2 = TankArray_4[4*(Tank_xDivPos )+1];
                                     TankArray_4_1 = TankArray_4[4*(Tank_xDivPos )+2];
                                     TankArray_4_0 = TankArray_4[4*(Tank_xDivPos )+3];
                                     TankArray_X_4 = {TankArray_4_3, TankArray_4_2, TankArray_4_1, TankArray_4_0};                                    
-                                    
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////     
                                     //If bottom edges are in boundary
-                                            if ((TankArray_X_1 == 1) | (TankArray_X_1 == 2) | (TankArray_X_2 == 1) | (TankArray_X_2 == 2))
+									if (((TankArray_X_1 == 1) | (TankArray_X_1 == 2)) & ((TankArray_X_2 == 1) | (TankArray_X_2 == 2)))
                                                 yPosition = yPosition - 1;
+												
                                     //If left edges are in boundary
-                                    else    if ((TankArray_X_1 == 1) | (TankArray_X_1 == 2) | (TankArray_X_3 == 1) | (TankArray_X_3 == 2))
+								    else if (((TankArray_X_1 == 1) | (TankArray_X_1 == 2)) & ((TankArray_X_3 == 1) | (TankArray_X_3 == 2)))
                                                 xPosition = xPosition + 1;
+												
                                     //if top edges are in boundary
-                                    else    if ((TankArray_X_3 == 1) | (TankArray_X_3 == 2) | (TankArray_X_4 == 1) | (TankArray_X_4 == 2))
+                                    else if (((TankArray_X_3 == 1) | (TankArray_X_3 == 2)) & ((TankArray_X_4 == 1) | (TankArray_X_4 == 2)))
                                                 yPosition = yPosition + 1;
+												
                                     // if right edges are in boundary
-                                    else    if ((TankArray_X_2 == 1) | (TankArray_X_2 == 2) | (TankArray_X_4 == 1) | (TankArray_X_4 == 2))
+                                    else if (((TankArray_X_2 == 1) | (TankArray_X_2 == 2)) & ((TankArray_X_4 == 1) | (TankArray_X_4 == 2)))
                                                 xPosition = xPosition - 1;                        
-                                 
-                                end                                    
-                                    
-//                                    if ((TankArray_X_2 == 1) | (TankArray_X_2 == 2))
-//                                        begin
-//                                            yPosition = yPosition + 1;
-//                                            xPosition = xPosition - 1;
-//                                        end
-//                                    else
-//                                        begin
-//                                            if (Up == 1)
-//                                                yPosition = yPosition - 1;
-//                                            if (Right == 1)
-//                                                xPosition = xPosition + 1;
-
-//                                            if ((TankArray_X_1 == 1) | (TankArray_X_1 == 2))
-//                                                begin
-//                                                    yPosition = yPosition - 1;
-//                                                    xPosition = xPosition + 1;
-//                                                end
-//                                            else
-//                                                begin
-//                                                    if (Down == 1)
-//                                                        yPosition = yPosition + 1;
-//                                                    if (Left == 1)
-//                                                        xPosition = xPosition - 1;
-                                                        
-//                                                end
-//                                        end
-//                                end     
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                            
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////        
+									// if bottom left is in boundary
+									if ((TankArray_X_1 == 1) | (TankArray_X_1 == 2))
+										begin
+											yPosition = yPosition - 1;
+											xPosition = xPosition + 1;
+										end
+									// if bottom right is in boundary	
+									else if ((TankArray_X_2 == 1) | (TankArray_X_2 == 2))
+										begin
+											yPosition = yPosition - 1;
+											xPosition = xPosition - 1;
+										end	
+									// if top left is in boundary	
+									else if ((TankArray_X_3 == 1) | (TankArray_X_3 == 2))
+										begin
+											yPosition = yPosition + 1;
+											xPosition = xPosition + 1;
+										end	
+									// if top right is in boundary	
+									else if ((TankArray_X_4 == 1) | (TankArray_X_4 == 2))
+										begin
+											yPosition = yPosition + 1;
+											xPosition = xPosition - 1;
+										end	
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////        
+										
+									else
+										begin
+											if (Up == 1)
+												yPosition = yPosition - 1;
+											if (Right == 1)
+												xPosition = xPosition + 1;
+											if (Down == 1)
+												yPosition = yPosition + 1;
+											if (Left == 1)
+												xPosition = xPosition - 1;   	
+										end
+								end 	    
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
                             
                             //within tank bounding box, set image to tank
-                            if ((Val_Col_In >= yPosition) & (Val_Col_In <= yPosition + yWidth) & (Val_Row_In >= xPosition) & (Val_Row_In <= xPosition + xWidth))
+                            if ((Val_Col_In >= yPosition) & (Val_Col_In <= yPosition + TankWidth) & (Val_Row_In >= xPosition) & (Val_Row_In <= xPosition + TankWidth))
                                 begin
                                     PrevY = yPosition;
                                     PrevX = xPosition;
             
                                 if (Down == 1)    
                                     begin
-                                        Tank_XInput = xWidth - (Val_Row_In - xPosition)%xWidth;
-                                        Tank_YInput = yWidth - (Val_Col_In - yPosition)%yWidth;
+                                        Tank_XInput = TankWidth - (Val_Row_In - xPosition)%TankWidth;
+                                        Tank_YInput = TankWidth - (Val_Col_In - yPosition)%TankWidth;
                                     end
             
                                 else if (Left == 1)    
@@ -247,8 +278,8 @@ always @(posedge Master_Clock_In)
             
                                 else if (Right == 1)
                                     begin
-                                        Tank_YInput = xWidth - (Val_Row_In - xPosition)%xWidth;
-                                        Tank_XInput = yWidth - (Val_Col_In - yPosition)%yWidth;
+                                        Tank_YInput = TankWidth - (Val_Row_In - xPosition)%TankWidth;
+                                        Tank_XInput = TankWidth - (Val_Col_In - yPosition)%TankWidth;
                                     end
             
                                 else
