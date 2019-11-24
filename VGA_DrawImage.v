@@ -216,7 +216,7 @@ always @(posedge Master_Clock_In)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////        
 									// if bottom left is in boundary
-									if ((TankArray_X_1 == 1) | (TankArray_X_1 == 2))
+									else if ((TankArray_X_1 == 1) | (TankArray_X_1 == 2))
 										begin
 											yPosition = yPosition - 1;
 											xPosition = xPosition + 1;
@@ -244,13 +244,14 @@ always @(posedge Master_Clock_In)
 										
 									else
 										begin
-											if (Up == 1)
+										//Finally getting to the actual tank controls
+											if 		(Up    == 1)
 												yPosition = yPosition - 1;
 											else if (Right == 1)
 												xPosition = xPosition + 1;
-											else if (Down == 1)
+											else if (Down  == 1)
 												yPosition = yPosition + 1;
-											else if (Left == 1)
+											else if (Left  == 1)
 												xPosition = xPosition - 1;   	
 										end
 								end 	    
@@ -260,25 +261,25 @@ always @(posedge Master_Clock_In)
                             //within tank bounding box, set image to tank
                             if ((Val_Col_In >= yPosition) & (Val_Col_In <= yPosition + TankWidth) & (Val_Row_In >= xPosition) & (Val_Row_In <= xPosition + TankWidth))
                                 begin
-
+									//If moving upwards, image is normal orientation
 									if (Up == 1)
 										begin
 											Tank_XInput = Val_Row_In - xPosition;
 											Tank_YInput = Val_Col_In - yPosition;
 										end
-
+									// If moving downwards, image is mirrored in x
 									else if (Down == 1)    
 										begin
 											Tank_XInput = TankWidth - (Val_Row_In - xPosition)%TankWidth;
 											Tank_YInput = TankWidth - (Val_Col_In - yPosition)%TankWidth;
 										end
-				
+									// if moving left, image is flipped to horizontal direction
 									else if (Left == 1)    
 										begin
 											Tank_YInput = Val_Row_In - xPosition;
 											Tank_XInput = Val_Col_In - yPosition;
 										end
-				
+									// if moving right, image is flipped to horizontal, and then mirrored in y
 									else if (Right == 1)
 										begin
 											Tank_YInput = TankWidth - (Val_Row_In - xPosition)%TankWidth;
