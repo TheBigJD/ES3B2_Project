@@ -1,6 +1,5 @@
-`timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-//Interface for USB HID Interface for keyboard
+//Interface for USB HID Interface for keyboard. Adapted from http://students.iitk.ac.in/eclub/assets/tutorials/keyboard.pdf
 //////////////////////////////////////////////////////////////////////////////////
 
 
@@ -35,6 +34,8 @@ module PS2Receiver(
     reg [7:0]datacur;
     reg [7:0]dataprev;
     reg [3:0]count;
+    reg [15:0]count1 = 0;
+    reg [15:0]keydelay = 16'h61A8; //delay of 1ms
     reg flag;                                 // to detect when keycode has been read in
     
     initial begin // Setup initial params to zero
@@ -78,13 +79,10 @@ begin
 end
 
 always @(posedge flag)          // Only start shifting data out after flag has been high and low (indicating a keyboard data has been loaded in)
-begin 		         
- 
-   
-
+begin 		            
     
-
-    if(datacur == 8'hf0)    //F0 is the 'stop code', indicating when a key has been pressed
+    if(datacur == 8'hf0)  
+    begin  //F0 is the 'stop code', indicating when a key has been pressed
             case(dataprev)  //map value from keyboard to smaller 3 bit array
                 up      : begin
                             p1keys <= 3'b001; // Set LEDs and set UP to high. Same for remaining directions
@@ -121,14 +119,21 @@ begin
                             
                                                        
                           end
-            endcase            
+            endcase  
+            
+//            if(count1 == keydelay) // try add 1ms delay after direction change. Doesn't seem to work.
+//                count1 = 0;
+//            else 
+//                count1 = count1 + 1;
+          end            
                      
     else
-        begin   dataprev <= datacur;
-        U <= 1'b0; // Reset directions to zero for no keyboard input
-                            D <= 1'b0;
-                            L <= 1'b0;
-                            R <= 1'b0;   
+        begin   
+            dataprev <= datacur;
+            U <= 1'b0;              // Reset directions to zero for no keyboard input
+            D <= 1'b0;
+            L <= 1'b0;
+            R <= 1'b0;   
 end
     end
 endmodule
