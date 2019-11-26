@@ -63,7 +63,7 @@ wire [11:0] Colour_Data_Tank;
 TankImage M5 (.Master_Clock_In(Master_Clock_In), .xInput(Tank_XInput), .yInput(Tank_YInput), .ColourData(Colour_Data_Tank));
 
 wire [11:0] Colour_Data_Brick;
-Brick M6( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In[5:0]), .yInput(Val_Col_In[5:0]), .ColourData(Colour_Data_Brick));
+Brick_Block M6( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In[5:0]), .yInput(Val_Col_In[5:0]), .ColourData(Colour_Data_Brick));
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
