@@ -163,8 +163,8 @@ always @(posedge Master_Clock_In)
 									Tank_xPos2_Holder = xPosition + 20;
 									Tank_yPos2_Holder = yPosition + 20;
 					
-                                    Tank_xDivPos = Tank_xPos2_Holder[9:5]%20;
-                                    Tank_yDivPos = Tank_yPos2_Holder[9:5]%15;
+                                    Tank_xDivPos_2 = Tank_xPos2_Holder[9:5]%20;
+                                    Tank_yDivPos_2 = Tank_yPos2_Holder[9:5]%15;
                                     
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////  
