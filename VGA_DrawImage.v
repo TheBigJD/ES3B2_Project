@@ -15,8 +15,8 @@ parameter Pixels_Vert  = 480; //Num of Pixels in Y axis
 
 parameter EdgeWidth = 0;
 
-reg [9:0] xPosition = 0; // Value is 1/2(Horiz Pixels + TankWidth)
-reg [9:0] yPosition = 0; // Value is 1/2(Vert Pixels + TankWidth)
+reg [9:0] xPosition = 5;
+reg [9:0] yPosition = 5;
 
 parameter TankWidth = 25 ;// same as for TankWidth 
 
@@ -63,7 +63,7 @@ wire [11:0] Colour_Data_Tank;
 TankImage M5 (.Master_Clock_In(Master_Clock_In), .xInput(Tank_XInput), .yInput(Tank_YInput), .ColourData(Colour_Data_Tank));
 
 wire [11:0] Colour_Data_Brick;
-Brick_Block M6( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In[5:0]), .yInput(Val_Col_In[5:0]), .ColourData(Colour_Data_Brick));
+Brick M6( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Brick));
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -83,8 +83,8 @@ always @(posedge Master_Clock_In)
                 Blue  = 4'h0;
                 Green = 4'h0;
     
-                xPosition = 0;
-                yPosition = 0;
+                xPosition = 5;
+                yPosition = 5;
             
 			end
 		else 
@@ -145,23 +145,23 @@ always @(posedge Master_Clock_In)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                                     // If y-coordinate is at screen limit, move to other side of screen
                                     if (yPosition == EdgeWidth)
-                                        yPosition = Pixels_Vert - TankWidth;
+                                        yPosition = Pixels_Vert - TankWidth - 1;
                                     else if (yPosition == Pixels_Vert - TankWidth - EdgeWidth)
-                                        yPosition = 0;
+                                        yPosition = 1;
 
                                     //if x-coordinate is at screen limit, move to other side of screen
                                     if (xPosition == EdgeWidth)
-                                        xPosition = Pixels_Horiz - TankWidth;
+                                        xPosition = Pixels_Horiz - TankWidth - 1;
                                     else if (xPosition == Pixels_Horiz - TankWidth - EdgeWidth)
-                                        xPosition = 0;
+                                        xPosition = 1;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////                    
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////                    
                                     //Setting Bounding boxes for tank control. Looking for box state at x and y positions
                                     Tank_xDivPos_1 = xPosition[9:5]%20;
                                     Tank_yDivPos_1 = yPosition[9:5]%15;
                                     
-									Tank_xPos2_Holder = xPosition + 20;
-									Tank_yPos2_Holder = yPosition + 20;
+									Tank_xPos2_Holder = xPosition + TankWidth;
+									Tank_yPos2_Holder = yPosition + TankWidth;
 					
                                     Tank_xDivPos_2 = Tank_xPos2_Holder[9:5]%20;
                                     Tank_yDivPos_2 = Tank_yPos2_Holder[9:5]%15;
@@ -311,13 +311,13 @@ always @(posedge Master_Clock_In)
 										4'h0:begin  Red = 4'h0; Green = 4'h0; Blue = 4'hF; end
 										
 										4'h1:begin 	Red   = Colour_Data_Brick[11:8];
-													Green = Colour_Data_Brick[7:4];
-													Blue  = Colour_Data_Brick[3:0];
+													Green = Colour_Data_Brick[ 7:4];
+													Blue  = Colour_Data_Brick[ 3:0];
 											 end
 											 
 										4'h2:begin  Red   = Colour_Data_Brick[11:8];
-													Green = Colour_Data_Brick[7:4];
-													Blue  = Colour_Data_Brick[3:0];
+													Green = Colour_Data_Brick[ 7:4];
+													Blue  = Colour_Data_Brick[ 3:0];
 											 end
 											 
 										4'h3:begin  Red = 4'hF; Green = 4'hF; Blue = 4'h0; end 
