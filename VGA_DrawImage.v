@@ -23,13 +23,9 @@ parameter TankWidth = 25 ;// same as for TankWidth
 reg [3:0] Colour_Counter = 0;
 reg [15:0] Clock_Div = 0;
 
-//	reg [0:8] Pix_Red   [0:8][3:0];
-//	reg [0:8] Pix_Blue  [0:8][3:0];
-//	reg [0:8] Pix_Green [0:8][3:0];
-//	reg [3:0] Red, Blue, Green;
 
-wire [11:0] Colour_Data_Background;
-wire [11:0] Colour_Data_Tank;
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 reg [9:0] Tank_XInput, Tank_YInput = 10'b0;	
 reg [9:0] PrevX, PrevY = 10'b0;
@@ -56,9 +52,21 @@ reg [0:79] TankArray_4 = 80'b0;
 reg [3:0] TankArray_X_4 = 4'b0;
 reg TankArray_4_0, TankArray_4_1, TankArray_4_2, TankArray_4_3;
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Instantiating colour inputs
+
+wire [11:0] Colour_Data_Background;
 //Bottle M4 (.Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Background));
 
+wire [11:0] Colour_Data_Tank;
 TankImage M5 (.Master_Clock_In(Master_Clock_In), .xInput(Tank_XInput), .yInput(Tank_YInput), .ColourData(Colour_Data_Tank));
+
+wire [11:0] Colour_Data_Brick;
+Brick M6( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Brick));
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 reg [0:79] MapArray [0:14];
 reg [0:79] MapArrayData_Y = 80'b0;
@@ -175,14 +183,14 @@ always @(posedge Master_Clock_In)
 
                                     //Bottom right
                                     TankArray_2   = MapArray[Tank_yDivPos_1];
-                                    TankArray_2_3 = TankArray_2[4*(Tank_xDivPos )  ];
-                                    TankArray_2_2 = TankArray_2[4*(Tank_xDivPos )+1];
-                                    TankArray_2_1 = TankArray_2[4*(Tank_xDivPos )+2];
-                                    TankArray_2_0 = TankArray_2[4*(Tank_xDivPos )+3];
+                                    TankArray_2_3 = TankArray_2[4*(Tank_xDivPos_2 )  ];
+                                    TankArray_2_2 = TankArray_2[4*(Tank_xDivPos_2 )+1];
+                                    TankArray_2_1 = TankArray_2[4*(Tank_xDivPos_2 )+2];
+                                    TankArray_2_0 = TankArray_2[4*(Tank_xDivPos_2 )+3];
                                     TankArray_X_2 = {TankArray_2_3, TankArray_2_2, TankArray_2_1, TankArray_2_0}; 
 									
                                     //Top left
-                                    TankArray_3   = MapArray[Tank_yDivPos ];
+                                    TankArray_3   = MapArray[Tank_yDivPos_2 ];
                                     TankArray_3_3 = TankArray_3[4*(Tank_xDivPos_1)  ];
                                     TankArray_3_2 = TankArray_3[4*(Tank_xDivPos_1)+1];
                                     TankArray_3_1 = TankArray_3[4*(Tank_xDivPos_1)+2];
@@ -190,12 +198,13 @@ always @(posedge Master_Clock_In)
                                     TankArray_X_3 = {TankArray_3_3, TankArray_3_2, TankArray_3_1, TankArray_3_0};   
 									
                                     //Top right
-                                    TankArray_4   = MapArray[Tank_yDivPos ];
-                                    TankArray_4_3 = TankArray_4[4*(Tank_xDivPos)   ];
-                                    TankArray_4_2 = TankArray_4[4*(Tank_xDivPos )+1];
-                                    TankArray_4_1 = TankArray_4[4*(Tank_xDivPos )+2];
-                                    TankArray_4_0 = TankArray_4[4*(Tank_xDivPos )+3];
-                                    TankArray_X_4 = {TankArray_4_3, TankArray_4_2, TankArray_4_1, TankArray_4_0};                                    
+                                    TankArray_4   = MapArray[Tank_yDivPos_2 ];
+                                    TankArray_4_3 = TankArray_4[4*(Tank_xDivPos_2 )  ];
+                                    TankArray_4_2 = TankArray_4[4*(Tank_xDivPos_2 )+1];
+                                    TankArray_4_1 = TankArray_4[4*(Tank_xDivPos_2 )+2];
+                                    TankArray_4_0 = TankArray_4[4*(Tank_xDivPos_2 )+3];
+                                    TankArray_X_4 = {TankArray_4_3, TankArray_4_2, TankArray_4_1, TankArray_4_0};   
+									
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////     
                                     //If bottom edges are in boundary
@@ -296,12 +305,27 @@ always @(posedge Master_Clock_In)
 								//	this will be changed to the colour of specific images dependant on the case	
 								//	rather than just flat colours.
                                 begin
-
+									
+									
 									case (MapArray_X)
 										4'h0:begin  Red = 4'h0; Green = 4'h0; Blue = 4'hF; end
-										4'h1:begin  Red = 4'h4; Green = 4'h4; Blue = 4'h4; end
-										4'h2:begin  Red = 4'hF; Green = 4'h0; Blue = 4'h0; end
+										
+										4'h1:begin 	Red   = Colour_Data_Brick[11:8];
+													Green = Colour_Data_Brick[7:4];
+													Blue  = Colour_Data_Brick[3:0];
+											 end
+											 
+										4'h2:begin  Red   = Colour_Data_Brick[11:8];
+													Green = Colour_Data_Brick[7:4];
+													Blue  = Colour_Data_Brick[3:0];
+											 end
+											 
 										4'h3:begin  Red = 4'hF; Green = 4'hF; Blue = 4'h0; end 
+										
+										4'h4:begin	Red = 4'hF; Green = 4'h4; Blue = 4'h4; end
+										4'h5:begin	Red = 4'hF; Green = 4'h4; Blue = 4'h4; end
+										4'h6:begin	Red = 4'hF; Green = 4'h4; Blue = 4'h4; end
+										4'h7:begin	Red = 4'hF; Green = 4'h4; Blue = 4'h4; end
 										
 										default:begin Red = 4'h8; Green = 4'h8; Blue = 4'h8;end
 										
