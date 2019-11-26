@@ -15,8 +15,8 @@ parameter Pixels_Vert  = 480; //Num of Pixels in Y axis
 
 parameter EdgeWidth = 0;
 
-reg [9:0] xPosition = 5;
-reg [9:0] yPosition = 5;
+reg [9:0] xPosition = 4;
+reg [9:0] yPosition = 4;
 
 parameter TankWidth = 25 ;// same as for TankWidth 
 
@@ -63,7 +63,7 @@ wire [11:0] Colour_Data_Tank;
 TankImage M5 (.Master_Clock_In(Master_Clock_In), .xInput(Tank_XInput), .yInput(Tank_YInput), .ColourData(Colour_Data_Tank));
 
 wire [11:0] Colour_Data_Brick;
-Brick M6( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Brick));
+Brick_Block M6( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Brick));
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -91,10 +91,14 @@ always @(posedge Master_Clock_In)
 			begin
 			// Need control for map choice here
                 MapArray[ 0] = 80'b0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000;
-                MapArray[ 1] = 80'b0000_0010_0011_0010_0011_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0011_0010_0011_0010_0000;
-                MapArray[ 2] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
-                MapArray[ 3] = 80'b0000_0010_0010_0010_0010_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0010_0010_0010_0010_0000;
-                MapArray[ 4] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
+//                MapArray[ 1] = 80'b0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000;
+//                MapArray[ 2] = 80'b0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000;
+//                MapArray[ 3] = 80'b0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000;
+//                MapArray[ 4] = 80'b0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000;
+                //MapArray[ 1] = 80'b0000_0010_0011_0010_0011_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0011_0010_0011_0010_0000;
+                //MapArray[ 2] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
+                //MapArray[ 3] = 80'b0000_0010_0010_0010_0010_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0010_0010_0010_0010_0000;
+                //MapArray[ 4] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
                 MapArray[ 5] = 80'b0000_0010_0011_0010_0011_0010_0010_0011_0010_0010_0010_0010_0011_0010_0010_0011_0010_0011_0011_0000;
                 MapArray[ 6] = 80'b0000_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0000;
                 MapArray[ 7] = 80'b0000_0010_0010_0010_0010_0010_0011_0010_0010_0010_0010_0010_0010_0011_0010_0010_0010_0010_0010_0000;
@@ -288,7 +292,7 @@ always @(posedge Master_Clock_In)
 											Tank_YInput = Val_Row_In - xPosition;
 											Tank_XInput = Val_Col_In - yPosition;
 										end
-									// if moving right, image is flipped to horizontal, and then mirrored in y
+									// if moving right, image is flipped to horizontal, and then mirrored in y 
 									else if (Right == 1)
 										begin
 											Tank_YInput = TankWidth - (Val_Row_In - xPosition)%TankWidth;
@@ -308,7 +312,7 @@ always @(posedge Master_Clock_In)
 									
 									
 									case (MapArray_X)
-										4'h0:begin  Red = 4'hF; Green = 4'hF; Blue = 4'hF; end
+										4'h0:begin  Red = 4'hF; Green = 4'hE; Blue = 4'hE; end
 										
 										4'h1:begin 	Red   = Colour_Data_Brick[11:8];
 													Green = Colour_Data_Brick[ 7:4];
