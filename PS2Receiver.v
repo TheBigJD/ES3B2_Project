@@ -8,19 +8,36 @@ module PS2Receiver(
     input clk, // Onboard clock
     input keyb_clk, // Clock from Keyboard
     input kdata, // Keyboard datacode
-    output [31:0] keycodeout // Keycode output
+    output reg [2:0]p1keys,
+    output reg [2:0]p2keys,
+    output reg U, 
+    output reg D, 
+    output reg L, 
+    output reg R
     );
+    
+    reg [7:0] up       = 8'b01110101,
+              down     = 8'b01110010, 
+              left     = 8'b01101011, 
+              right    = 8'b11100000, 
+              space    = 8'b00101001, 
+              w        = 8'b00011101, 
+              a        = 8'b00011100, 
+              s        = 8'b00011011, 
+              d        = 8'b00100011, 
+              tab      = 8'b00001101,
+              enter    = 8'b01011010,
+              backspa  = 8'b01100110,
+              STOP     = 8'hF0;
     
     
     wire keyb_clk_debounced, kdata_debounced; // Output wires from debounce module
     reg [7:0]datacur;
     reg [7:0]dataprev;
     reg [3:0]count;
-    reg [31:0]keycode; // 32 bits keycode
-    reg flag; //
+    reg flag;                                 // to detect when keycode has been read in
     
     initial begin // Setup initial params to zero
-        keycode[31:0]<=0'h00000000;
         count<=4'b0000;
         flag<=1'b0;
     end
@@ -60,19 +77,58 @@ begin
         
 end
 
-//Replace this section with single keycodes, prototype to get it displayed on 4 digit segment display
+always @(posedge flag)          // Only start shifting data out after flag has been high and low (indicating a keyboard data has been loaded in)
+begin 		         
+ 
+   
 
-always @(posedge flag)begin 		// Only start shifting data out after flag has been high and low (indicating a keyboard data has been loaded in)
-    if (dataprev!=datacur)
-		begin
-			keycode[31:24]<=keycode[23:16];
-			keycode[23:16]<=keycode[15:8];
-			keycode[15:8]<=dataprev;
-			keycode[7:0]<=datacur;
-			dataprev<=datacur;
-		end
+    
+
+    if(datacur == 8'hf0)    //F0 is the 'stop code', indicating when a key has been pressed
+            case(dataprev)  //map value from keyboard to smaller 3 bit array
+                up      : begin
+                            p1keys <= 3'b001; // Set LEDs and set UP to high. Same for remaining directions
+                            U <= 1'b1;
+                          end
+                left    : begin
+                            p1keys <= 3'b010;
+                            L <= 1'b1;
+                        end
+                right   : begin
+                            p1keys <= 3'b011;
+                            R <= 1'b1;
+                        end
+                down    : begin
+                            p1keys <= 3'b100;
+                            D <= 1'b1;
+                        end
+                space   : p1keys <= 3'b101;
+                
+                    w   : p2keys <= 3'b001; //up is 1
+                    a   : p2keys <= 3'b010; // left is 2
+                    s   : p2keys <= 3'b011; // right is 3
+                    d   : p2keys <= 3'b100; // down is 4
+                    tab : p2keys <= 3'b101; // shoot (tab) is 5
+                    
+                default : begin
+                            p1keys <= 3'b000;
+                            p2keys <= 3'b000;
+                            
+                            U <= 1'b0; // Reset directions to zero for no keyboard input
+                            D <= 1'b0;
+                            L <= 1'b0;
+                            R <= 1'b0;                          
+                            
+                                                       
+                          end
+            endcase            
+                     
+    else
+        begin   dataprev <= datacur;
+        U <= 1'b0; // Reset directions to zero for no keyboard input
+                            D <= 1'b0;
+                            L <= 1'b0;
+                            R <= 1'b0;   
 end
-    
-assign keycodeout=keycode; // Ouput 4 previous digits entered on keyboard
-    
+    end
 endmodule
