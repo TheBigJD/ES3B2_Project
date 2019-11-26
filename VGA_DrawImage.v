@@ -63,7 +63,7 @@ wire [11:0] Colour_Data_Tank;
 TankImage M5 (.Master_Clock_In(Master_Clock_In), .xInput(Tank_XInput), .yInput(Tank_YInput), .ColourData(Colour_Data_Tank));
 
 wire [11:0] Colour_Data_Brick;
-Brick_Block M6( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Brick));
+Brick M6( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Brick));
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -90,21 +90,21 @@ always @(posedge Master_Clock_In)
 		else 
 			begin
 			// Need control for map choice here
-				MapArray[ 0] = 80'b0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000;
-				MapArray[ 1] = 80'b0000_0010_0011_0010_0011_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0011_0010_0011_0010_0000;
-				MapArray[ 2] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
-				MapArray[ 3] = 80'b0000_0010_0010_0010_0010_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0010_0010_0010_0010_0000;
-				MapArray[ 4] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
-				MapArray[ 5] = 80'b0000_0010_0011_0010_0011_0010_0010_0011_0010_0010_0010_0010_0011_0010_0010_0011_0010_0011_0011_0000;
-				MapArray[ 6] = 80'b0000_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0000;
-				MapArray[ 7] = 80'b0000_0010_0010_0010_0010_0010_0011_0010_0010_0010_0010_0010_0010_0011_0010_0010_0010_0010_0010_0000;
-				MapArray[ 8] = 80'b0000_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0000;
-				MapArray[ 9] = 80'b0000_0010_0011_0010_0011_0010_0010_0011_0010_0010_0010_0010_0011_0010_0010_0011_0010_0011_0010_0000;
-				MapArray[10] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
-				MapArray[11] = 80'b0000_0010_0010_0010_0010_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0010_0010_0010_0010_0000;
-				MapArray[12] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
-				MapArray[13] = 80'b0000_0010_0011_0010_0011_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0011_0010_0011_0010_0000;
-				MapArray[14] = 80'b0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000;
+                MapArray[ 0] = 80'b0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000;
+                MapArray[ 1] = 80'b0000_0010_0011_0010_0011_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0011_0010_0011_0010_0000;
+                MapArray[ 2] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
+                MapArray[ 3] = 80'b0000_0010_0010_0010_0010_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0010_0010_0010_0010_0000;
+                MapArray[ 4] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
+                MapArray[ 5] = 80'b0000_0010_0011_0010_0011_0010_0010_0011_0010_0010_0010_0010_0011_0010_0010_0011_0010_0011_0011_0000;
+                MapArray[ 6] = 80'b0000_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0000;
+                MapArray[ 7] = 80'b0000_0010_0010_0010_0010_0010_0011_0010_0010_0010_0010_0010_0010_0011_0010_0010_0010_0010_0010_0000;
+                MapArray[ 8] = 80'b0000_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0000;
+                MapArray[ 9] = 80'b0000_0010_0011_0010_0011_0010_0010_0011_0010_0010_0010_0010_0011_0010_0010_0011_0010_0011_0010_0000;
+                MapArray[10] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
+                MapArray[11] = 80'b0000_0010_0010_0010_0010_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0010_0010_0010_0010_0000;
+                MapArray[12] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
+                MapArray[13] = 80'b0000_0010_0011_0010_0011_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0011_0010_0011_0010_0000;
+                MapArray[14] = 80'b0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000;
 
  
             if (Disp_Ena_In == 0)
@@ -168,7 +168,7 @@ always @(posedge Master_Clock_In)
                                     
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////  
-                                    //Bottom left
+                                    //Top left
                                     TankArray_1   = MapArray[Tank_yDivPos_1];// This is the array for the map containing the 'bottom left#' of the tank
                                     TankArray_1_3 = TankArray_1[4*Tank_xDivPos_1  ];// This is bit 3 of [3:0] of the current position's status.
                                     TankArray_1_2 = TankArray_1[4*Tank_xDivPos_1+1];// This is bit 2 of [3:0] of the current position's status.
@@ -181,7 +181,7 @@ always @(posedge Master_Clock_In)
 									
 									// The same logic repeats for each corner of the tank.
 
-                                    //Bottom right
+                                    //Top right
                                     TankArray_2   = MapArray[Tank_yDivPos_1];
                                     TankArray_2_3 = TankArray_2[4*(Tank_xDivPos_2 )  ];
                                     TankArray_2_2 = TankArray_2[4*(Tank_xDivPos_2 )+1];
@@ -189,7 +189,7 @@ always @(posedge Master_Clock_In)
                                     TankArray_2_0 = TankArray_2[4*(Tank_xDivPos_2 )+3];
                                     TankArray_X_2 = {TankArray_2_3, TankArray_2_2, TankArray_2_1, TankArray_2_0}; 
 									
-                                    //Top left
+                                    //Bottom left
                                     TankArray_3   = MapArray[Tank_yDivPos_2 ];
                                     TankArray_3_3 = TankArray_3[4*(Tank_xDivPos_1)  ];
                                     TankArray_3_2 = TankArray_3[4*(Tank_xDivPos_1)+1];
@@ -197,7 +197,7 @@ always @(posedge Master_Clock_In)
                                     TankArray_3_0 = TankArray_3[4*(Tank_xDivPos_1)+3];
                                     TankArray_X_3 = {TankArray_3_3, TankArray_3_2, TankArray_3_1, TankArray_3_0};   
 									
-                                    //Top right
+                                    //Bottom right
                                     TankArray_4   = MapArray[Tank_yDivPos_2 ];
                                     TankArray_4_3 = TankArray_4[4*(Tank_xDivPos_2 )  ];
                                     TankArray_4_2 = TankArray_4[4*(Tank_xDivPos_2 )+1];
@@ -208,7 +208,7 @@ always @(posedge Master_Clock_In)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////     
                                     //If bottom edges are in boundary
-									if (((TankArray_X_1 == 1) | (TankArray_X_1 == 2)) & ((TankArray_X_2 == 1) | (TankArray_X_2 == 2)))
+									if (((TankArray_X_3 == 1) | (TankArray_X_3 == 2)) & ((TankArray_X_4 == 1) | (TankArray_X_4 == 2)))
                                                 yPosition = yPosition - 1;
 												
                                     //If left edges are in boundary
@@ -216,7 +216,7 @@ always @(posedge Master_Clock_In)
                                                 xPosition = xPosition + 1;
 												
                                     //if top edges are in boundary
-                                    else if (((TankArray_X_3 == 1) | (TankArray_X_3 == 2)) & ((TankArray_X_4 == 1) | (TankArray_X_4 == 2)))
+                                    else if (((TankArray_X_1 == 1) | (TankArray_X_1 == 2)) & ((TankArray_X_2 == 1) | (TankArray_X_2 == 2)))
                                                 yPosition = yPosition + 1;
 												
                                     // if right edges are in boundary
@@ -224,28 +224,28 @@ always @(posedge Master_Clock_In)
                                                 xPosition = xPosition - 1;                        
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////        
-									// if bottom left is in boundary
+									// if top left is in boundary
 									else if ((TankArray_X_1 == 1) | (TankArray_X_1 == 2))
 										begin
-											yPosition = yPosition - 1;
+											yPosition = yPosition + 1;
 											xPosition = xPosition + 1;
 										end
-									// if bottom right is in boundary	
+									// if top right is in boundary	
 									else if ((TankArray_X_2 == 1) | (TankArray_X_2 == 2))
 										begin
-											yPosition = yPosition - 1;
+											yPosition = yPosition + 1;
 											xPosition = xPosition - 1;
 										end	
-									// if top left is in boundary	
+									// if bottom left is in boundary	
 									else if ((TankArray_X_3 == 1) | (TankArray_X_3 == 2))
 										begin
-											yPosition = yPosition + 1;
+											yPosition = yPosition - 1;
 											xPosition = xPosition + 1;
 										end	
-									// if top right is in boundary	
+									// if bottom right is in boundary	
 									else if ((TankArray_X_4 == 1) | (TankArray_X_4 == 2))
 										begin
-											yPosition = yPosition + 1;
+											yPosition = yPosition - 1;
 											xPosition = xPosition - 1;
 										end	
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
@@ -308,7 +308,7 @@ always @(posedge Master_Clock_In)
 									
 									
 									case (MapArray_X)
-										4'h0:begin  Red = 4'h0; Green = 4'h0; Blue = 4'hF; end
+										4'h0:begin  Red = 4'hF; Green = 4'hF; Blue = 4'hF; end
 										
 										4'h1:begin 	Red   = Colour_Data_Brick[11:8];
 													Green = Colour_Data_Brick[ 7:4];
