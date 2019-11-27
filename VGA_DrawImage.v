@@ -80,9 +80,8 @@ TankImage M5 (.Master_Clock_In(Master_Clock_In), .xInput(Tank_XInput), .yInput(T
 wire [11:0] Colour_Data_Brick;
 Brick_Block M6( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Brick));
 
-reg [9:0] Tank_XInput, Tank_YInput = 10'b0;	
 wire [11:0] Colour_Data_Coin;
-Mystery_Image M7( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Coin));
+Mystery_Image M7( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In%32), .yInput(Val_Col_In%32), .ColourData(Colour_Data_Coin));
 
 	
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
