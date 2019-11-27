@@ -343,31 +343,31 @@ always @(posedge Master_Clock_In)
 											xPosition = xPosition - 1;
 										end	
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 					
-									else if (Tank_Array_X_1 == 3)
-										begin
- 										MapArray[Tank_yDivPos_1][Bullet_xDivPos_1:Bullet_xDivPos_1 + 3] = 4'h0;	
- 										CoinValue = CoinValue + 1;	
-										end
+//									else if (Tank_Array_X_1 == 3)
+//										begin
+// 										MapArray[Tank_yDivPos_1][Bullet_xDivPos_1:Bullet_xDivPos_1 + 3] = 4'h0;	
+// 										CoinValue = CoinValue + 1;	
+//										end
 									
- 									else if (Tank_Array_X_2 == 3)
-										begin
- 										MapArray[Tank_yDivPos_1][Bullet_xDivPos_2:Bullet_xDivPos_2 + 3] = 4'h0;	
- 										CoinValue = CoinValue + 1;	
-										end
+// 									else if (Tank_Array_X_2 == 3)
+//										begin
+// 										MapArray[Tank_yDivPos_1][Bullet_xDivPos_2:Bullet_xDivPos_2 + 3] = 4'h0;	
+// 										CoinValue = CoinValue + 1;	
+//										end
 									
- 									else if (Tank_Array_X_3 == 3)
-										begin
- 										MapArray[Tank_yDivPos_2][Bullet_xDivPos_1:Bullet_xDivPos_1 + 3] = 4'h0;	
- 										CoinValue = CoinValue + 1;
-										end
+// 									else if (Tank_Array_X_3 == 3)
+//										begin
+// 										MapArray[Tank_yDivPos_2][Bullet_xDivPos_1:Bullet_xDivPos_1 + 3] = 4'h0;	
+// 										CoinValue = CoinValue + 1;
+//										end
 									
- 									else if (Tank_Array_X_4 == 3)
-										begin
- 										MapArray[Tank_yDivPos_2][Bullet_xDivPos_2:Bullet_xDivPos_2 + 3] = 4'h0;	
- 										CoinValue = CoinValue + 1;
-										end
+// 									else if (Tank_Array_X_4 == 3)
+//										begin
+// 										MapArray[Tank_yDivPos_2][Bullet_xDivPos_2:Bullet_xDivPos_2 + 3] = 4'h0;	
+// 										CoinValue = CoinValue + 1;
+//										end
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 										
@@ -437,7 +437,7 @@ always @(posedge Master_Clock_In)
                                 
                                 end
 							//Bullet Draw
-							else if ((Val_Col_In >= Bullet_Y_Input_1) & (Val_Col_In <= Bullet_Y_Input_1 + BulleltWidth) & (Val_Row_In >= Bullet_X_Input_1 & (Val_Row_In <= Bullet_X_Input_1 + BulletWidth))
+							else if ((Val_Col_In >= Bullet_Y_Input_1) & (Val_Col_In <= Bullet_Y_Input_1 + BulletWidth) & (Val_Row_In >= Bullet_X_Input_1) & (Val_Row_In <= Bullet_X_Input_1 + BulletWidth))
 								begin
 									Red 	= 4'h0;
 									Green 	= 4'h0;
