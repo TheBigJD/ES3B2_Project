@@ -436,13 +436,18 @@ always @(posedge Master_Clock_In)
                                     Blue  = Colour_Data_Tank[3:0];
                                 
                                 end
-                            else
+							//Bullet Draw
+							else if ((Val_Col_In >= Bullet_Y_Input_1) & (Val_Col_In <= Bullet_Y_Input_1 + BulleltWidth) & (Val_Row_In >= Bullet_X_Input_1 & (Val_Row_In <= Bullet_X_Input_1 + BulletWidth))
+								begin
+									Red 	= 4'h0;
+									Green 	= 4'h0;
+									Blue 	= 4'h0;
+								end
+							else	
                                 //if not within tank bounding box, image is dependant on colour of map.
 								//	this will be changed to the colour of specific images dependant on the case	
 								//	rather than just flat colours.
                                 begin
-									
-									
 									case (MapArray_X)
 										4'h0:begin  Red = 4'hE; Green = 4'hE; Blue = 4'hE; end
 										
