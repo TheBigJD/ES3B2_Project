@@ -220,7 +220,7 @@ always @(posedge Master_Clock_In)
 											Bullet_Fired_1 = 1'b1;
 											Bullet_Dir = Prev_Direction;
 											
-											case (Prev_Direction)
+											case (Bullet_Dir)
 												Up:		begin
 															Bullet_XInput_1 = xPosition + (BulletWidth + 3);
 															Bullet_YInput_1 = yPosition - (BulletWidth + 3);
@@ -265,8 +265,23 @@ always @(posedge Master_Clock_In)
 													Bullet_YInput_1 = 0;
 													Bullet_Fired_1 	= 0;
 												end
-											
-											
+											else
+												case (Bullet_Dir)
+													Up: begin
+														Bullet_YInput_1 = Bullet_YInput_1 - 1;
+													end
+													
+													Down: begin
+														Bullet_YInput_1 = Bullet_YInput_1 + 1;
+													end
+													
+													Left: begin
+														Bullet_XInput_1 = Bullet_XInput_1 - 1;
+													end
+													
+													Right: begin
+														Bullet_XInput_1 = Bullet_XInput_1 + 1;
+													end
 										end
 									else
 										
