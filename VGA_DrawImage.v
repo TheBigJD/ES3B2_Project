@@ -84,6 +84,8 @@ Brick_Block M6( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(
 wire [11:0] Colour_Data_Coin;
 MysteryImage M7( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Coin));
 
+wire [11:0] Colour_Data_Solid_Block;
+Solid_block M8( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Solid_Block));
 	
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -501,11 +503,11 @@ always @(posedge Master_Clock_In)
 									case (MapArray_X)
 										4'h0:begin  Red = 4'hE; Green = 4'hE; Blue = 4'hE; end
 										
-										4'h1:begin 	Red   = Colour_Data_Brick[11:8];
+										4'h1:begin 	Red   = Colour_Data_Solid_Block[11:8];
 																//Green = Colour_Data_Brick[ 7:4];
-													Blue  = Colour_Data_Brick[ 7:4];
+													Blue  = Colour_Data_Solid_Block[ 7:4];
 																//Blue  = Colour_Data_Brick[ 3:0];
-													Green = Colour_Data_Brick[ 3:0];
+													Green = Colour_Data_Solid_Block[ 3:0];
 										     end
 											 
 										4'h2:begin  Red   = Colour_Data_Brick[11:8];
