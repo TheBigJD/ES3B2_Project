@@ -25,7 +25,7 @@ parameter EdgeWidth = 0;
 reg [9:0] Tank_xPos = 4;
 reg [9:0] Tank_yPos = 4;
 
-parameter TankWidth   = 25;
+parameter TankWidth   = 24;
 
 	
 reg [3:0] Colour_Counter = 0;

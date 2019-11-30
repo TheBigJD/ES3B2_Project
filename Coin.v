@@ -1,4 +1,26 @@
+module Coin_Image(
+	input Master_Clock_In,
+	input [9 : 0] xInput,
+	input [9 : 0] yInput,
+	output reg [11:0] ColourData = 12'h000
+);
 
+(* rom_style = "block" *)
+
+reg [19:0] Inputs = 20'd0;
+
+reg [9:0] a, b = 10'd0;
+
+always @(posedge Master_Clock_In)
+	begin
+
+
+		a = xInput % 32;
+		b = yInput % 32;
+
+		Inputs = {a, b};
+
+		case(Inputs)
 20'b00000000000000000000 : ColourData = 12'hEFF;
 20'b00000000010000000000 : ColourData = 12'hFFF;
 20'b00000000100000000000 : ColourData = 12'hFFF;
@@ -1023,3 +1045,8 @@
 20'b00000111010000011111 : ColourData = 12'hFFF;
 20'b00000111100000011111 : ColourData = 12'hFFF;
 20'b00000111110000011111 : ColourData = 12'hFFF;
+default: ColourData = 12'hF00;
+
+endcase
+end
+endmodule

@@ -15,8 +15,8 @@ reg [9:0] a, b = 10'd0;
 
 always @(posedge Master_Clock_In)
 begin
-  a = xInput % 25;
-  b = yInput % 25;
+  a = xInput % 25 -1;
+  b = yInput % 25 -1;
 
 Inputs = {a, b};
 
