@@ -2,11 +2,10 @@ module VGA_Draw(
     input Master_Clock_In, Reset_N_In,
     input Disp_Ena_In,
     input [9:0] Val_Col_In, Val_Row_In,
-    input Up, Down,
-    input Left, Right,
-	input Fire,
-    
+    input Up, Down, Left, Right, Fire,
+    input LevelSwitch_1, LevelSwitch_0,
     input ColourSwitch_1,
+    input MoveSpeed_1, MoveSpeed_0,
 //	input Up_2, Down_2,
 //  input Left_2, Right_2,
 //  input Fire_2,
@@ -26,7 +25,7 @@ parameter EdgeWidth = 0;
 reg [9:0] Tank_xPos = 4;
 reg [9:0] Tank_yPos = 4;
 
-parameter TankWidth   = 25;
+parameter TankWidth   = 24;
 
 	
 reg [3:0] Colour_Counter = 0;
@@ -35,15 +34,15 @@ reg [15:0] Clock_Div = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-reg [1:0] MoveSpeed = 2'b1;
+reg [2:0] MoveSpeed = 3'b1;
 
 reg [9:0] PrevX, PrevY = 10'b0;
 
-reg [1:0] PrevDirection;	
-	reg [1:0] Up_Direction = 2'b00;	
-reg [1:0] Down_Direction = 2'b01;	
-reg [1:0] Left_Direction = 2'b10;	
-reg [1:0] Right_Direction = 2'b11;		
+reg [2:0] PrevDirection     = 3'b00;	
+parameter [2:0] Up_Direction      = 3'b100;	
+parameter [2:0] Down_Direction    = 3'b001;	
+parameter [2:0] Left_Direction    = 3'b010;	
+parameter [2:0] Right_Direction   = 3'b011;		
 	
 reg [9:0] xDivPos, yDivPos;	
 	
@@ -78,11 +77,9 @@ reg [9:0] Tank_XInput, Tank_YInput = 10'b0;
 wire [11:0] Colour_Data_Tank;
 TankImage M5 (.Master_Clock_In(Master_Clock_In), .xInput(Tank_XInput), .yInput(Tank_YInput), .ColourData(Colour_Data_Tank));
 
-//reg [9:0] Brick_XInput, Brick_YInput = 10'b0;	
 wire [11:0] Colour_Data_Brick;
 Brick_Block M6( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Brick));
 
-//reg [9:0] Tank_XInput, Tank_YInput = 10'b0;	
 wire [11:0] Colour_Data_Nyan;
 MysteryImage M7( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Nyan));
 
@@ -101,8 +98,7 @@ reg [9:0] Bullet_XInput_1, Bullet_YInput_1 = 10'd16;
 reg Bullet_Fired_prev_1 = 1'b0;
 reg Bullet_Fired_prev_2 = 1'b0;
 reg Bullet_Fired_1		= 1'b0;
-reg [1:0] Bullet_Dir_1  = 2'b00;
-reg [1:0] Bullet_prev_direction = 2'b00;
+reg [2:0] Bullet_Dir_1  = 2'b000;
 
 reg [5:0] Bullet_ClockDiv = 6'b0;
 reg [5:0] Bullet_ClockCounter = 6'd30;
@@ -111,7 +107,6 @@ reg [5:0] Bullet_ClockCounter = 6'd30;
 	
 //reg [0:79] BulletArray_1 = 80'b0;
 reg [3:0] BulletArray_X = 4'b0;
-reg [79:0] BulletArray = 80'b0; 
 reg [79:0] BulletArrayData_Y = 80'b0;
 reg BulletArrayData_X_0, BulletArrayData_X_1, BulletArrayData_X_2, BulletArrayData_X_3;
 
@@ -141,28 +136,48 @@ always @(posedge Master_Clock_In)
                 Tank_xPos = 10'd5;
                 Tank_yPos = 10'd5;
 				
-                MapArray[ 0] = 80'b0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000;
-                MapArray[ 1] = 80'b0001_0010_0011_0010_0011_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0011_0010_0011_0010_0001;
-                MapArray[ 2] = 80'b0001_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0001;
-                MapArray[ 3] = 80'b0001_0010_0010_0010_0010_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0010_0010_0010_0010_0001;
-                MapArray[ 4] = 80'b0001_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0001;
-                MapArray[ 5] = 80'b0001_0010_0011_0010_0011_0010_0010_0011_0010_0010_0010_0010_0011_0010_0010_0011_0010_0011_0011_0001;
-                MapArray[ 6] = 80'b0001_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0001;
-                MapArray[ 7] = 80'b0001_0010_0010_0010_0010_0010_0011_0010_0010_0010_0010_0010_0010_0011_0010_0010_0010_0010_0010_0001;
-                MapArray[ 8] = 80'b0001_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0001;
-                MapArray[ 9] = 80'b0001_0010_0011_0010_0011_0010_0010_0011_0010_0010_0010_0010_0011_0010_0010_0011_0010_0011_0010_0001;
-                MapArray[10] = 80'b0001_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0001;
-                MapArray[11] = 80'b0001_0010_0010_0010_0010_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0010_0010_0010_0010_0001;
-                MapArray[12] = 80'b0001_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0001;
-                MapArray[13] = 80'b0001_0010_0011_0010_0011_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0011_0010_0011_0010_0001;
-                MapArray[14] = 80'b0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000;
-
+				case ({LevelSwitch_1, LevelSwitch_0})
+				    1: begin
+				        MapArray[ 0] = 80'b0001_0001_0001_0000_0001_0001_0001_0001_0001_0001_0001_0001_0001_0001_0001_0001_0000_0001_0001_0001;
+                        MapArray[ 1] = 80'b0001_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0001;
+                        MapArray[ 2] = 80'b0001_0011_0001_0001_0001_0011_0010_0010_0011_0000_0000_0011_0010_0010_0011_0001_0001_0001_0011_0001;
+                        MapArray[ 3] = 80'b0001_0000_0000_0000_0000_0000_0010_0000_0000_0000_0000_0000_0000_0010_0000_0000_0000_0000_0000_0001;
+                        MapArray[ 4] = 80'b0001_0000_0010_0010_0010_0000_0010_0000_0001_0001_0001_0001_0000_0010_0000_0010_0010_0010_0000_0001;
+                        MapArray[ 5] = 80'b0001_0000_0000_0000_0000_0000_0010_0000_0000_0010_0010_0000_0000_0010_0000_0000_0000_0000_0000_0001;
+                        MapArray[ 6] = 80'b0001_0000_0001_0000_0000_0010_0010_0000_0000_0010_0010_0000_0000_0010_0010_0000_0000_0001_0000_0001;
+                        MapArray[ 7] = 80'b0000_0000_0001_0011_0010_0011_0011_0010_0011_0010_0010_0011_0010_0011_0011_0010_0011_0001_0000_0000;
+                        MapArray[ 8] = 80'b0001_0000_0001_0000_0000_0010_0010_0000_0000_0010_0010_0000_0000_0010_0010_0000_0000_0001_0000_0001;
+                        MapArray[ 9] = 80'b0001_0000_0000_0000_0000_0000_0010_0000_0000_0010_0010_0000_0000_0010_0000_0000_0000_0000_0000_0001;
+                        MapArray[10] = 80'b0001_0000_0010_0010_0010_0000_0010_0000_0001_0001_0001_0001_0000_0010_0000_0010_0010_0010_0000_0001;
+                        MapArray[11] = 80'b0001_0000_0000_0000_0000_0000_0010_0000_0000_0000_0000_0000_0000_0010_0000_0000_0000_0000_0000_0001;
+                        MapArray[12] = 80'b0001_0011_0001_0001_0001_0011_0010_0010_0011_0000_0000_0011_0010_0010_0011_0001_0001_0001_0011_0001;
+                        MapArray[13] = 80'b0001_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0001;
+                        MapArray[14] = 80'b0001_0001_0001_0000_0001_0001_0001_0001_0001_0001_0001_0001_0001_0001_0001_0001_0000_0001_0001_0001;
+                    end
+				    
+				    
+				    default: begin
+                        MapArray[ 0] = 80'b0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000;
+                        MapArray[ 1] = 80'b0001_0010_0011_0010_0011_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0011_0010_0011_0010_0001;
+                        MapArray[ 2] = 80'b0001_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0001;
+                        MapArray[ 3] = 80'b0001_0010_0010_0010_0010_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0010_0010_0010_0010_0001;
+                        MapArray[ 4] = 80'b0001_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0001;
+                        MapArray[ 5] = 80'b0001_0010_0011_0010_0011_0010_0010_0011_0010_0010_0010_0010_0011_0010_0010_0011_0010_0011_0011_0001;
+                        MapArray[ 6] = 80'b0001_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0001;
+                        MapArray[ 7] = 80'b0001_0010_0010_0010_0010_0010_0011_0010_0010_0010_0010_0010_0010_0011_0010_0010_0010_0010_0010_0001;
+                        MapArray[ 8] = 80'b0001_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0001;
+                        MapArray[ 9] = 80'b0001_0010_0011_0010_0011_0010_0010_0011_0010_0010_0010_0010_0011_0010_0010_0011_0010_0011_0010_0001;
+                        MapArray[10] = 80'b0001_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0001;
+                        MapArray[11] = 80'b0001_0010_0010_0010_0010_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0010_0010_0010_0010_0001;
+                        MapArray[12] = 80'b0001_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0001;
+                        MapArray[13] = 80'b0001_0010_0011_0010_0011_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0011_0010_0011_0010_0001;
+                        MapArray[14] = 80'b0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000;
+                    end
+                endcase
 			end
 		else 
 			begin
 			// Need control for map choice here
-
- 
             if (Disp_Ena_In == 0)
                 begin
                     Red 	= {4{1'b0}};
@@ -183,8 +198,6 @@ always @(posedge Master_Clock_In)
                             //      that the tank movement is limited if it reaches a point where the tank cant move through.
                             // This will allow the basis for the bullets too. If it hits a breakable block, we can change the reg's
                             //      value at this point to 4'h0, and the tank will behave differently than it would if it was 4'h2.
-                            
-
                             if ((Val_Col_In == Pixels_Vert) & (Val_Row_In == Pixels_Horiz))
                                 begin
 							// There might be a better way of ordering these values - overwriting might make an impact
@@ -195,93 +208,92 @@ always @(posedge Master_Clock_In)
 
 									//Rising edge of 'Fire' button input
 									
-									Bullet_Fired_prev_2 <= Bullet_Fired_prev_1;
-									Bullet_Fired_prev_1 <= Fire;
-									
-									if ((Fire == 1'b1) & (Bullet_Fired_prev_2 == 1'b0))
-									//if ((Bullet_Fired_prev_1 == 0) & (Fire == 1))
-										begin
-											Bullet_Fired_1 = 1'b1;
-											Bullet_Dir_1 = Bullet_prev_direction;
-											
-											case (Bullet_prev_direction)
-												Up:		begin
-															Bullet_XInput_1 = Tank_xPos + (BulletWidth + 3);
-															Bullet_YInput_1 = Tank_yPos - (BulletWidth + 3);
-														end
-												
-												Down:	begin
-															Bullet_XInput_1 = Tank_xPos + (BulletWidth + 3);
-															Bullet_YInput_1 = Tank_yPos + (BulletWidth + 3) + TankWidth;
-														end
-												
-												Left:	begin
-															Bullet_XInput_1 = Tank_xPos - (BulletWidth + 3);
-															Bullet_YInput_1 = Tank_yPos + (BulletWidth + 3);
-														end
-												
-												Right:	begin
-															Bullet_XInput_1 = Tank_xPos + (BulletWidth + 3) + TankWidth;
-															Bullet_YInput_1 = Tank_yPos - (BulletWidth + 3) + TankWidth;
-														end
-														
-                                                default: begin
-                                                            Bullet_XInput_1 = 10'b0; 
-                                                            Bullet_YInput_1 = 10'b0; 
+                                    Bullet_Fired_prev_2 = Bullet_Fired_prev_1;
+                                    Bullet_Fired_prev_1 = Fire;
+                                    
+                                    if ((Fire == 1'b1) & (Bullet_Fired_prev_2 == 1'b0) & (Bullet_Fired_1 == 0))
+                                    //if ((Bullet_Fired_prev_1 == 0) & (Fire == 1))
+                                        begin
+                                            Bullet_Fired_1 = 1'b1;
+                                            Bullet_Dir_1 = PrevDirection;
+                                            
+                                            case (Bullet_Dir_1)
+                                                Up_Direction:
+                                                    begin
+                                                        Bullet_XInput_1 = Tank_xPos + (BulletWidth + 3);
+                                                        Bullet_YInput_1 = Tank_yPos - (BulletWidth + 3);
+                                                    end
+                                                Down_Direction:
+                                                    begin
+                                                        Bullet_XInput_1 = Tank_xPos + (BulletWidth + 3);
+                                                        Bullet_YInput_1 = Tank_yPos + (BulletWidth + 3) + TankWidth;
+                                                    end
+                                                Left_Direction:
+                                                    begin
+                                                        Bullet_XInput_1 = Tank_xPos - (BulletWidth + 3);
+                                                        Bullet_YInput_1 = Tank_yPos + (BulletWidth + 3);
+                                                    end
+                                                Right_Direction:
+                                                    begin
+                                                        Bullet_XInput_1 = Tank_xPos + (BulletWidth + 3) + TankWidth;
+                                                        Bullet_YInput_1 = Tank_yPos - (BulletWidth + 3) + TankWidth;
+                                                    end
+                                                default: Bullet_Fired_1 = 1'b0;
+                                            endcase
+                                        end
+                                        
+                                    else if (Bullet_Fired_1 == 1)
+                                        begin
+                                            Bullet_xDivPos_1 = (Bullet_XInput_1[9:5])%20;
+                                            Bullet_yDivPos_1 = (Bullet_YInput_1[9:5])%15;
+                                            
+                                            BulletArrayData_Y   = MapArray[Bullet_yDivPos_1];
+                                            BulletArrayData_X_3 = BulletArrayData_Y[4* (Bullet_xDivPos_1)];
+                                            BulletArrayData_X_2 = BulletArrayData_Y[4* (Bullet_xDivPos_1) + 1];
+                                            BulletArrayData_X_1 = BulletArrayData_Y[4* (Bullet_xDivPos_1) + 2];
+                                            BulletArrayData_X_0 = BulletArrayData_Y[4* (Bullet_xDivPos_1) + 3];
+                                            
+                                            BulletArray_X = {BulletArrayData_X_3, BulletArrayData_X_2, BulletArrayData_X_1, BulletArrayData_X_0 };
+                                            
+                                            if ((Bullet_XInput_1 <= BulletWidth) | (Bullet_YInput_1 <= BulletWidth) | (Bullet_XInput_1 >= Pixels_Horiz - BulletWidth) | (Bullet_YInput_1 >= Pixels_Vert - BulletWidth))
+                                                begin
+                                                    Bullet_XInput_1 = 10'd16;
+                                                    Bullet_YInput_1 = 10'd16;
+                                                    Bullet_Fired_1 	=  1'b0;
+                                                end
+                                            
+                                            if ((BulletArray_X == 1) | (BulletArray_X == 2))
+                                                begin
+                                                    Bullet_XInput_1 = 10'd16;
+                                                    Bullet_YInput_1 = 10'd16;
+                                                    Bullet_Fired_1 	=  1'b0;
+                                    
+                                                    if (BulletArray_X == 2)
+                                                        begin
+                                                            MapArray[Bullet_yDivPos_1][4 * Bullet_xDivPos_1	   ] = 1'b0;	
+                                                            MapArray[Bullet_yDivPos_1][4 * Bullet_xDivPos_1 + 1] = 1'b0;
+                                                            MapArray[Bullet_yDivPos_1][4 * Bullet_xDivPos_1 + 2] = 1'b0;
+                                                            MapArray[Bullet_yDivPos_1][4 * Bullet_xDivPos_1 + 3] = 1'b0;
                                                         end
-											endcase
-									    end
-										
-									if (Bullet_Fired_1 == 1)
-										begin
-											Bullet_xDivPos_1 = ((Bullet_XInput_1[9:5])%20);
-											Bullet_yDivPos_1 = ((Bullet_YInput_1[9:5])%15);
-											
-											BulletArrayData_Y   = BulletArray[Bullet_yDivPos_1];
-											BulletArrayData_X_3 = BulletArrayData_Y[4* Bullet_xDivPos_1];
-											BulletArrayData_X_2 = BulletArrayData_Y[4* Bullet_xDivPos_1 + 1];
-											BulletArrayData_X_1 = BulletArrayData_Y[4* Bullet_xDivPos_1 + 2];
-											BulletArrayData_X_0 = BulletArrayData_Y[4* Bullet_xDivPos_1 + 3];
-											
-											BulletArray_X = {BulletArrayData_X_3, BulletArrayData_X_2, BulletArrayData_X_1, BulletArrayData_X_0 };
-									 
-											if ((BulletArray_X == 1) | (BulletArray_X == 2))
-												begin
-													Bullet_XInput_1 = 10'd0;
-													Bullet_YInput_1 = 10'd0;
-													Bullet_Fired_1 	= 1'b0;
-
-													if (BulletArray_X == 2)
-														begin
-															MapArray[Bullet_yDivPos_1][4 * Bullet_xDivPos_1	   ] = 1'b0;	
-															MapArray[Bullet_yDivPos_1][4 * Bullet_xDivPos_1 + 1] = 1'b0;
-															MapArray[Bullet_yDivPos_1][4 * Bullet_xDivPos_1 + 2] = 1'b0;
-															MapArray[Bullet_yDivPos_1][4 * Bullet_xDivPos_1 + 3] = 1'b0;
-														end
-												end
-											else
-												begin
-													if ((Bullet_XInput_1 == BulletWidth) | (Bullet_YInput_1 == BulletWidth) | (Bullet_XInput_1 == Pixels_Horiz-BulletWidth) | (Bullet_YInput_1 == Pixels_Vert-BulletWidth))
-														begin
-															Bullet_XInput_1 = 10'b0;
-															Bullet_YInput_1 = 10'b0;
-															Bullet_Fired_1 	= 1'b0;
-														end
-													else
-														begin
-															case (Bullet_prev_direction)
-																Up    : Bullet_YInput_1 = Bullet_YInput_1 - 5;
-																Down  : Bullet_YInput_1 = Bullet_YInput_1 + 5;
-																Left  : Bullet_XInput_1 = Bullet_XInput_1 - 5;
-																Right : Bullet_XInput_1 = Bullet_XInput_1 + 5;
-															endcase
-														end
-												end
-										end
-									
-	
-										
-										
+                                                end
+                                                
+                                            else
+                                                begin
+                                                    case (Bullet_Dir_1)
+                                                        Up_Direction    : Bullet_YInput_1 = Bullet_YInput_1 - 5;
+                                                        Down_Direction  : Bullet_YInput_1 = Bullet_YInput_1 + 5;
+                                                        Left_Direction  : Bullet_XInput_1 = Bullet_XInput_1 - 5;
+                                                        Right_Direction : Bullet_XInput_1 = Bullet_XInput_1 + 5;
+                                                        default: Bullet_Fired_1 = 1'b0;
+                                                    endcase	
+                                                end
+                                        end
+                                    else
+                                        begin
+                                            Bullet_XInput_1 = 10'b0;
+                                            Bullet_YInput_1 = 10'b0;
+                                            Bullet_Fired_1 	= 1'b0;
+                                        end
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                                     // If y-coordinate is at screen limit, move to other side of screen
@@ -289,7 +301,7 @@ always @(posedge Master_Clock_In)
                                         Tank_yPos = Pixels_Vert - TankWidth - 1;
                                     else if (Tank_yPos == Pixels_Vert - TankWidth - EdgeWidth)
                                         Tank_yPos = 10'b1;
-
+                                        
                                     //if x-coordinate is at screen limit, move to other side of screen
                                     if (Tank_xPos == EdgeWidth)
                                         Tank_xPos = Pixels_Horiz - TankWidth - 1;
@@ -450,7 +462,7 @@ always @(posedge Master_Clock_In)
 										
 									else
 										begin
-											
+											MoveSpeed = 1 + MoveSpeed_0 + MoveSpeed_1 * 2;
 										//Finally getting to the actual tank controls
 											if (Up    == 1)
 											    begin
@@ -492,7 +504,7 @@ always @(posedge Master_Clock_In)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////    
                             //within tank bounding box, set image to tank
-                            if ((Val_Col_In >= Tank_yPos) & (Val_Col_In < Tank_yPos + TankWidth) & (Val_Row_In >= Tank_xPos) & (Val_Row_In < Tank_xPos + TankWidth))
+                            if ((Val_Col_In > Tank_yPos) & (Val_Col_In < Tank_yPos + TankWidth) & (Val_Row_In > Tank_xPos) & (Val_Row_In < Tank_xPos + TankWidth))
                                 begin
 									//If moving upwards, image is normal orientation
 									if (PrevDirection == Up_Direction)
@@ -547,13 +559,13 @@ always @(posedge Master_Clock_In)
 								//	rather than just flat colours.
                                 begin
 									case (MapArray_X)
-										4'h0:begin  Red = 4'hF; Green = 4'hF; Blue = 4'hF; end
+										4'h0:begin  Red   = 4'hF; 
+                                                    Green = 4'hF; 
+                                                    Blue  = 4'hF; end
 										
 										4'h1:begin 	Red   = Colour_Data_Solid_Block[11:8];
-																//Green = Colour_Data_Brick[ 7:4];
-													Green  = Colour_Data_Solid_Block[ 7:4];
-																//Blue  = Colour_Data_Brick[ 3:0];
-													Blue = Colour_Data_Solid_Block[ 3:0];
+													Green = Colour_Data_Solid_Block[ 7:4];
+													Blue  = Colour_Data_Solid_Block[ 3:0];
 										     end
 											 
 										4'h2:begin  Red   = Colour_Data_Brick[11:8];
@@ -574,14 +586,14 @@ always @(posedge Master_Clock_In)
                                                         Green 	= Colour_Data_Nyan[ 7:4];
                                                         Blue 	= Colour_Data_Nyan[ 3:0];
 											         end 
-                                                end
+                                            end
 										
-										4'h4:begin	Red = 4'hF; Green = 4'h4; Blue = 4'h4; end
-										4'h5:begin	Red = 4'hF; Green = 4'h4; Blue = 4'h4; end
-										4'h6:begin	Red = 4'hF; Green = 4'h4; Blue = 4'h4; end
-										4'h7:begin	Red = 4'hF; Green = 4'h4; Blue = 4'h4; end
+										4'h4:     begin	Red = 4'hF; Green = 4'h4; Blue = 4'h4; end
+										4'h5:     begin	Red = 4'hF; Green = 4'h4; Blue = 4'h4; end
+										4'h6:     begin	Red = 4'hF; Green = 4'h4; Blue = 4'h4; end
+										4'h7:     begin	Red = 4'hF; Green = 4'h4; Blue = 4'h4; end
 										
-										default:begin Red = 4'h8; Green = 4'h8; Blue = 4'h8;end
+										default:  begin Red = 4'h8; Green = 4'h8; Blue = 4'h8;end
 										
 									endcase
 
