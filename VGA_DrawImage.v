@@ -6,6 +6,7 @@ module VGA_Draw(
     input Left, Right,
 	input Fire,
     
+    input ColourSwitch_1,
 //	input Up_2, Down_2,
 //  input Left_2, Right_2,
 //  input Fire_2,
@@ -22,8 +23,8 @@ parameter Pixels_Vert  = 480; //Num of Pixels in Y axis
 
 parameter EdgeWidth = 0;
 
-reg [9:0] xPosition = 4;
-reg [9:0] yPosition = 4;
+reg [9:0] Tank_xPos = 4;
+reg [9:0] Tank_yPos = 4;
 
 parameter TankWidth   = 25;
 
@@ -34,6 +35,7 @@ reg [15:0] Clock_Div = 0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+reg [1:0] MoveSpeed = 2'b1;
 
 reg [9:0] PrevX, PrevY = 10'b0;
 
@@ -81,27 +83,35 @@ wire [11:0] Colour_Data_Brick;
 Brick_Block M6( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Brick));
 
 //reg [9:0] Tank_XInput, Tank_YInput = 10'b0;	
-wire [11:0] Colour_Data_Coin;
-MysteryImage M7( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Coin));
+wire [11:0] Colour_Data_Nyan;
+MysteryImage M7( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Nyan));
 
 wire [11:0] Colour_Data_Solid_Block;
 Solid_block M8( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Solid_Block));
 	
+wire [11:0] Colour_Data_Coin;
+Coin_Image M9( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Coin));
+
+	
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Bullets?
-parameter BulletWidth = 10;
+parameter [3:0] BulletWidth = 4'd10;
 reg [9:0] Bullet_XInput_1, Bullet_YInput_1 = 10'd16;
 reg Bullet_Fired_prev_1 = 1'b0;
+reg Bullet_Fired_prev_2 = 1'b0;
 reg Bullet_Fired_1		= 1'b0;
-reg [1:0] Bullet_Dir_1 = 2'b0;
-reg [1:0] Bullet_prev_direction = 2'b0;
+reg [1:0] Bullet_Dir_1  = 2'b00;
+reg [1:0] Bullet_prev_direction = 2'b00;
+
+reg [5:0] Bullet_ClockDiv = 6'b0;
+reg [5:0] Bullet_ClockCounter = 6'd30;
 	// Note - these are coded differently to the tank bounding boxes. Tanks are done at each corner, whereas this is done
 	//		at the centre only
 	
-reg [0:79] BulletArray_1 = 80'b0;
+//reg [0:79] BulletArray_1 = 80'b0;
 reg [3:0] BulletArray_X = 4'b0;
-reg [79:0] BulletArray [0:14]; 
+reg [79:0] BulletArray = 80'b0; 
 reg [79:0] BulletArrayData_Y = 80'b0;
 reg BulletArrayData_X_0, BulletArrayData_X_1, BulletArrayData_X_2, BulletArrayData_X_3;
 
@@ -124,24 +134,27 @@ always @(posedge Master_Clock_In)
                 Red   = 4'h0;     
                 Blue  = 4'h0;
                 Green = 4'h0;
-    
-                xPosition = 5;
-                yPosition = 5;
+                    
+                Bullet_Fired_1 = 1'b0;
+                Bullet_XInput_1 = 10'd16;
+                Bullet_YInput_1 = 10'd16;
+                Tank_xPos = 10'd5;
+                Tank_yPos = 10'd5;
 				
                 MapArray[ 0] = 80'b0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000;
-                MapArray[ 1] = 80'b0000_0010_0011_0010_0011_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0011_0010_0011_0010_0000;
-                MapArray[ 2] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
-                MapArray[ 3] = 80'b0000_0010_0010_0010_0010_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0010_0010_0010_0010_0000;
-                MapArray[ 4] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
-                MapArray[ 5] = 80'b0000_0010_0011_0010_0011_0010_0010_0011_0010_0010_0010_0010_0011_0010_0010_0011_0010_0011_0011_0000;
-                MapArray[ 6] = 80'b0000_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0000;
-                MapArray[ 7] = 80'b0000_0010_0010_0010_0010_0010_0011_0010_0010_0010_0010_0010_0010_0011_0010_0010_0010_0010_0010_0000;
-                MapArray[ 8] = 80'b0000_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0000;
-                MapArray[ 9] = 80'b0000_0010_0011_0010_0011_0010_0010_0011_0010_0010_0010_0010_0011_0010_0010_0011_0010_0011_0010_0000;
-                MapArray[10] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
-                MapArray[11] = 80'b0000_0010_0010_0010_0010_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0010_0010_0010_0010_0000;
-                MapArray[12] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
-                MapArray[13] = 80'b0000_0010_0011_0010_0011_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0011_0010_0011_0010_0000;
+                MapArray[ 1] = 80'b0001_0010_0011_0010_0011_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0011_0010_0011_0010_0001;
+                MapArray[ 2] = 80'b0001_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0001;
+                MapArray[ 3] = 80'b0001_0010_0010_0010_0010_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0010_0010_0010_0010_0001;
+                MapArray[ 4] = 80'b0001_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0001;
+                MapArray[ 5] = 80'b0001_0010_0011_0010_0011_0010_0010_0011_0010_0010_0010_0010_0011_0010_0010_0011_0010_0011_0011_0001;
+                MapArray[ 6] = 80'b0001_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0001;
+                MapArray[ 7] = 80'b0001_0010_0010_0010_0010_0010_0011_0010_0010_0010_0010_0010_0010_0011_0010_0010_0010_0010_0010_0001;
+                MapArray[ 8] = 80'b0001_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0001;
+                MapArray[ 9] = 80'b0001_0010_0011_0010_0011_0010_0010_0011_0010_0010_0010_0010_0011_0010_0010_0011_0010_0011_0010_0001;
+                MapArray[10] = 80'b0001_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0001;
+                MapArray[11] = 80'b0001_0010_0010_0010_0010_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0010_0010_0010_0010_0001;
+                MapArray[12] = 80'b0001_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0001;
+                MapArray[13] = 80'b0001_0010_0011_0010_0011_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0011_0010_0011_0010_0001;
                 MapArray[14] = 80'b0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000;
 
 			end
@@ -171,16 +184,6 @@ always @(posedge Master_Clock_In)
                             // This will allow the basis for the bullets too. If it hits a breakable block, we can change the reg's
                             //      value at this point to 4'h0, and the tank will behave differently than it would if it was 4'h2.
                             
-                            xDivPos = ((Val_Row_In[9:5])%20);
-                            yDivPos = ((Val_Col_In[9:5])%15);
-                            
-                            MapArrayData_Y   = MapArray[yDivPos];
-                            MapArrayData_X_3 = MapArrayData_Y[4*xDivPos];
-                            MapArrayData_X_2 = MapArrayData_Y[4*xDivPos + 1];
-                            MapArrayData_X_1 = MapArrayData_Y[4*xDivPos + 2];
-                            MapArrayData_X_0 = MapArrayData_Y[4*xDivPos + 3];
-                            
-                            MapArray_X = {MapArrayData_X_3, MapArrayData_X_2, MapArrayData_X_1, MapArrayData_X_0 };
 
                             if ((Val_Col_In == Pixels_Vert) & (Val_Row_In == Pixels_Horiz))
                                 begin
@@ -189,110 +192,117 @@ always @(posedge Master_Clock_In)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 									//Bullet controls
-							Bullet_xDivPos_1 = ((Val_Row_In[9:5])%20);
-                            Bullet_yDivPos_1 = ((Val_Col_In[9:5])%15);
-                            
-                            BulletArrayData_Y   = BulletArray[yDivPos];
-                            BulletArrayData_X_3 = BulletArrayData_Y[4*xDivPos];
-                            BulletArrayData_X_2 = BulletArrayData_Y[4*xDivPos + 1];
-                            BulletArrayData_X_1 = BulletArrayData_Y[4*xDivPos + 2];
-                            BulletArrayData_X_0 = BulletArrayData_Y[4*xDivPos + 3];
-                            
-                            BulletArray_X = {BulletArrayData_X_3, BulletArrayData_X_2, BulletArrayData_X_1, BulletArrayData_X_0 };
 
 									//Rising edge of 'Fire' button input
-									Bullet_Fired_prev_1 = Fire;
 									
-									if ((Bullet_Fired_prev_1 == 0) & (Fire == 1))
+									Bullet_Fired_prev_2 <= Bullet_Fired_prev_1;
+									Bullet_Fired_prev_1 <= Fire;
+									
+									if ((Fire == 1'b1) & (Bullet_Fired_prev_2 == 1'b0))
+									//if ((Bullet_Fired_prev_1 == 0) & (Fire == 1))
 										begin
 											Bullet_Fired_1 = 1'b1;
 											Bullet_Dir_1 = Bullet_prev_direction;
 											
 											case (Bullet_prev_direction)
 												Up:		begin
-															Bullet_XInput_1 = xPosition + (BulletWidth + 3);
-															Bullet_YInput_1 = yPosition - (BulletWidth + 3);
+															Bullet_XInput_1 = Tank_xPos + (BulletWidth + 3);
+															Bullet_YInput_1 = Tank_yPos - (BulletWidth + 3);
 														end
 												
 												Down:	begin
-															Bullet_XInput_1 = xPosition + (BulletWidth + 3);
-															Bullet_YInput_1 = yPosition + (BulletWidth + 3) + TankWidth;
+															Bullet_XInput_1 = Tank_xPos + (BulletWidth + 3);
+															Bullet_YInput_1 = Tank_yPos + (BulletWidth + 3) + TankWidth;
 														end
 												
 												Left:	begin
-															Bullet_XInput_1 = xPosition - (BulletWidth + 3);
-															Bullet_YInput_1 = yPosition + (BulletWidth + 3);
+															Bullet_XInput_1 = Tank_xPos - (BulletWidth + 3);
+															Bullet_YInput_1 = Tank_yPos + (BulletWidth + 3);
 														end
 												
 												Right:	begin
-															Bullet_XInput_1 = xPosition + (BulletWidth + 3) + TankWidth;
-															Bullet_YInput_1 = yPosition - (BulletWidth + 3) + TankWidth;
+															Bullet_XInput_1 = Tank_xPos + (BulletWidth + 3) + TankWidth;
+															Bullet_YInput_1 = Tank_yPos - (BulletWidth + 3) + TankWidth;
 														end
+														
+                                                default: begin
+                                                            Bullet_XInput_1 = 10'b0; 
+                                                            Bullet_YInput_1 = 10'b0; 
+                                                        end
 											endcase
 									    end
 										
 									if (Bullet_Fired_1 == 1)
 										begin
-
+											Bullet_xDivPos_1 = ((Bullet_XInput_1[9:5])%20);
+											Bullet_yDivPos_1 = ((Bullet_YInput_1[9:5])%15);
+											
+											BulletArrayData_Y   = BulletArray[Bullet_yDivPos_1];
+											BulletArrayData_X_3 = BulletArrayData_Y[4* Bullet_xDivPos_1];
+											BulletArrayData_X_2 = BulletArrayData_Y[4* Bullet_xDivPos_1 + 1];
+											BulletArrayData_X_1 = BulletArrayData_Y[4* Bullet_xDivPos_1 + 2];
+											BulletArrayData_X_0 = BulletArrayData_Y[4* Bullet_xDivPos_1 + 3];
+											
+											BulletArray_X = {BulletArrayData_X_3, BulletArrayData_X_2, BulletArrayData_X_1, BulletArrayData_X_0 };
+									 
 											if ((BulletArray_X == 1) | (BulletArray_X == 2))
 												begin
-													Bullet_XInput_1 = 0;
-													Bullet_YInput_1 = 0;
-													Bullet_Fired_1 	= 0;
+													Bullet_XInput_1 = 10'd0;
+													Bullet_YInput_1 = 10'd0;
+													Bullet_Fired_1 	= 1'b0;
 
 													if (BulletArray_X == 2)
 														begin
-															MapArray[Bullet_yDivPos_1][Bullet_xDivPos_1	   ] = 1'b0;	
-															MapArray[Bullet_yDivPos_1][Bullet_xDivPos_1 + 1] = 1'b0;
-															MapArray[Bullet_yDivPos_1][Bullet_xDivPos_1 + 2] = 1'b0;
-															MapArray[Bullet_yDivPos_1][Bullet_xDivPos_1 + 3] = 1'b0;
+															MapArray[Bullet_yDivPos_1][4 * Bullet_xDivPos_1	   ] = 1'b0;	
+															MapArray[Bullet_yDivPos_1][4 * Bullet_xDivPos_1 + 1] = 1'b0;
+															MapArray[Bullet_yDivPos_1][4 * Bullet_xDivPos_1 + 2] = 1'b0;
+															MapArray[Bullet_yDivPos_1][4 * Bullet_xDivPos_1 + 3] = 1'b0;
 														end
-												end
-
-											else if ((Bullet_XInput_1 == BulletWidth/2) | (Bullet_YInput_1 == BulletWidth/2) | (Bullet_XInput_1 == Pixels_Horiz-BulletWidth/2) | (Bullet_YInput_1 == Pixels_Vert-BulletWidth/2))
-												begin
-													Bullet_XInput_1 = 0;
-													Bullet_YInput_1 = 0;
-													Bullet_Fired_1 	= 0;
 												end
 											else
 												begin
-													case (Bullet_prev_direction)
-														Up    : Bullet_YInput_1 = Bullet_YInput_1 - 1;
-														Down  : Bullet_YInput_1 = Bullet_YInput_1 + 1;
-														Left  : Bullet_XInput_1 = Bullet_XInput_1 - 1;
-														Right : Bullet_XInput_1 = Bullet_XInput_1 + 1;
-                                                    endcase
-                                                end
-                                                    
-
-
+													if ((Bullet_XInput_1 == BulletWidth) | (Bullet_YInput_1 == BulletWidth) | (Bullet_XInput_1 == Pixels_Horiz-BulletWidth) | (Bullet_YInput_1 == Pixels_Vert-BulletWidth))
+														begin
+															Bullet_XInput_1 = 10'b0;
+															Bullet_YInput_1 = 10'b0;
+															Bullet_Fired_1 	= 1'b0;
+														end
+													else
+														begin
+															case (Bullet_prev_direction)
+																Up    : Bullet_YInput_1 = Bullet_YInput_1 - 5;
+																Down  : Bullet_YInput_1 = Bullet_YInput_1 + 5;
+																Left  : Bullet_XInput_1 = Bullet_XInput_1 - 5;
+																Right : Bullet_XInput_1 = Bullet_XInput_1 + 5;
+															endcase
+														end
+												end
 										end
-									else
+									
 	
 										
 										
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                                     // If y-coordinate is at screen limit, move to other side of screen
-                                    if (yPosition == EdgeWidth)
-                                        yPosition = Pixels_Vert - TankWidth - 1;
-                                    else if (yPosition == Pixels_Vert - TankWidth - EdgeWidth)
-                                        yPosition = 1;
+                                    if (Tank_yPos == EdgeWidth)
+                                        Tank_yPos = Pixels_Vert - TankWidth - 1;
+                                    else if (Tank_yPos == Pixels_Vert - TankWidth - EdgeWidth)
+                                        Tank_yPos = 10'b1;
 
                                     //if x-coordinate is at screen limit, move to other side of screen
-                                    if (xPosition == EdgeWidth)
-                                        xPosition = Pixels_Horiz - TankWidth - 1;
-                                    else if (xPosition == Pixels_Horiz - TankWidth - EdgeWidth)
-                                        xPosition = 1;
+                                    if (Tank_xPos == EdgeWidth)
+                                        Tank_xPos = Pixels_Horiz - TankWidth - 1;
+                                    else if (Tank_xPos == Pixels_Horiz - TankWidth - EdgeWidth)
+                                        Tank_xPos = 10'b1;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////                    
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////                    
                                     //Setting Bounding boxes for tank control. Looking for box state at x and y positions
-                                    Tank_xDivPos_1 = xPosition[9:5]%20;
-                                    Tank_yDivPos_1 = yPosition[9:5]%15;
+                                    Tank_xDivPos_1 = Tank_xPos[9:5]%20;
+                                    Tank_yDivPos_1 = Tank_yPos[9:5]%15;
                                     
-									Tank_xPos2_Holder = xPosition + TankWidth;
-									Tank_yPos2_Holder = yPosition + TankWidth;
+									Tank_xPos2_Holder = Tank_xPos + TankWidth;
+									Tank_yPos2_Holder = Tank_yPos + TankWidth;
 					
                                     Tank_xDivPos_2 = Tank_xPos2_Holder[9:5]%20;
                                     Tank_yDivPos_2 = Tank_yPos2_Holder[9:5]%15;
@@ -337,86 +347,101 @@ always @(posedge Master_Clock_In)
                                     TankArray_X_4 = {TankArray_4_3, TankArray_4_2, TankArray_4_1, TankArray_4_0};   
 									
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////     
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////  
+                                    // If y-coordinate is at screen limit, move to other side of screen
+                                    if (Tank_yPos == EdgeWidth)
+                                        Tank_yPos = Pixels_Vert - TankWidth - 3;
+                                    else if (Tank_yPos == Pixels_Vert - TankWidth - EdgeWidth)
+                                        Tank_yPos = 3;
+
+                                    //if x-coordinate is at screen limit, move to other side of screen
+                                    if (Tank_xPos == EdgeWidth)
+                                        Tank_xPos = Pixels_Horiz - TankWidth - 3;
+                                    else if (Tank_xPos == Pixels_Horiz - TankWidth - EdgeWidth)
+                                        Tank_xPos = 3;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////       
                                     //If bottom edges are in boundary
-									if (((TankArray_X_3 == 1) | (TankArray_X_3 == 2)) & ((TankArray_X_4 == 1) | (TankArray_X_4 == 2)))
-                                                yPosition = yPosition - 1;
+									else if (((TankArray_X_3 == 1) | (TankArray_X_3 == 2)) & ((TankArray_X_4 == 1) | (TankArray_X_4 == 2)))
+                                                Tank_yPos = Tank_yPos - 1;
 												
                                     //If left edges are in boundary
 								    else if (((TankArray_X_1 == 1) | (TankArray_X_1 == 2)) & ((TankArray_X_3 == 1) | (TankArray_X_3 == 2)))
-                                                xPosition = xPosition + 1;
+                                                Tank_xPos = Tank_xPos + 1;
 												
                                     //if top edges are in boundary
                                     else if (((TankArray_X_1 == 1) | (TankArray_X_1 == 2)) & ((TankArray_X_2 == 1) | (TankArray_X_2 == 2)))
-                                                yPosition = yPosition + 1;
+                                                Tank_yPos = Tank_yPos + 1;
 												
                                     // if right edges are in boundary
                                     else if (((TankArray_X_2 == 1) | (TankArray_X_2 == 2)) & ((TankArray_X_4 == 1) | (TankArray_X_4 == 2)))
-                                                xPosition = xPosition - 1;                        
+                                                Tank_xPos = Tank_xPos - 1;                        
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////        
 									// if top left is in boundary
 									else if ((TankArray_X_1 == 1) | (TankArray_X_1 == 2))
 										begin
-											yPosition = yPosition + 1;
-											xPosition = xPosition + 1;
+											Tank_yPos = Tank_yPos + 1;
+											Tank_xPos = Tank_xPos + 1;
 										end
 									// if top right is in boundary	
 									else if ((TankArray_X_2 == 1) | (TankArray_X_2 == 2))
 										begin
-											yPosition = yPosition + 1;
-											xPosition = xPosition - 1;
+											Tank_yPos = Tank_yPos + 1;
+											Tank_xPos = Tank_xPos - 1;
 										end	
 									// if bottom left is in boundary	
 									else if ((TankArray_X_3 == 1) | (TankArray_X_3 == 2))
 										begin
-											yPosition = yPosition - 1;
-											xPosition = xPosition + 1;
+											Tank_yPos = Tank_yPos - 1;
+											Tank_xPos = Tank_xPos + 1;
 										end	
 									// if bottom right is in boundary	
 									else if ((TankArray_X_4 == 1) | (TankArray_X_4 == 2))
 										begin
-											yPosition = yPosition - 1;
-											xPosition = xPosition - 1;
+											Tank_yPos = Tank_yPos - 1;
+											Tank_xPos = Tank_xPos - 1;
 										end	
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 					
 									else if (TankArray_X_1 == 3)
 										begin
-											MapArray[Tank_yDivPos_1][Tank_xDivPos_1   ] = 1'b0;	
-											MapArray[Tank_yDivPos_1][Tank_xDivPos_1+ 1] = 1'b0;	
-											MapArray[Tank_yDivPos_1][Tank_xDivPos_1+ 2] = 1'b0;
-											MapArray[Tank_yDivPos_1][Tank_xDivPos_1+ 3] = 1'b0;
+											MapArray[Tank_yDivPos_1][4 * Tank_xDivPos_1   ] = 1'b0;	
+											MapArray[Tank_yDivPos_1][4 * Tank_xDivPos_1+ 1] = 1'b0;	
+											MapArray[Tank_yDivPos_1][4 * Tank_xDivPos_1+ 2] = 1'b0;
+											MapArray[Tank_yDivPos_1][4 * Tank_xDivPos_1+ 3] = 1'b0;
+											
 											CoinValue = CoinValue + 1;	
 										end
 								
  									else if (TankArray_X_2 == 3)
 										begin
-											MapArray[Tank_yDivPos_1][Tank_xDivPos_2	 ] = 1'b0;	
-											MapArray[Tank_yDivPos_1][Tank_xDivPos_2 + 1] = 1'b0;
-											MapArray[Tank_yDivPos_1][Tank_xDivPos_2 + 2] = 1'b0;
-											MapArray[Tank_yDivPos_1][Tank_xDivPos_2 + 3] = 1'b0;
+											MapArray[Tank_yDivPos_1][4 * Tank_xDivPos_2	 ]   = 1'b0;	
+											MapArray[Tank_yDivPos_1][4 * Tank_xDivPos_2 + 1] = 1'b0;
+											MapArray[Tank_yDivPos_1][4 * Tank_xDivPos_2 + 2] = 1'b0;
+											MapArray[Tank_yDivPos_1][4 * Tank_xDivPos_2 + 3] = 1'b0;
 											
 											CoinValue = CoinValue + 1;	
 										end
 								
  									else if (TankArray_X_3 == 3)
 										begin
-											MapArray[Tank_yDivPos_2][Tank_xDivPos_1   ] = 1'b0;	
-											MapArray[Tank_yDivPos_2][Tank_xDivPos_1+ 1] = 1'b0;
-											MapArray[Tank_yDivPos_2][Tank_xDivPos_1+ 2] = 1'b0;
-											MapArray[Tank_yDivPos_2][Tank_xDivPos_1+ 3] = 1'b0;
+											MapArray[Tank_yDivPos_2][4 * Tank_xDivPos_1   ] = 1'b0;	
+											MapArray[Tank_yDivPos_2][4 * Tank_xDivPos_1+ 1] = 1'b0;
+											MapArray[Tank_yDivPos_2][4 * Tank_xDivPos_1+ 2] = 1'b0;
+											MapArray[Tank_yDivPos_2][4 * Tank_xDivPos_1+ 3] = 1'b0;
 											
 											CoinValue = CoinValue + 1;
 										end
 								
  									else if (TankArray_X_4 == 3)
 										begin
-											MapArray[Tank_yDivPos_2][Tank_xDivPos_2   ] = 1'b0;	
-											MapArray[Tank_yDivPos_2][Tank_xDivPos_2+ 1] = 1'b0;
-											MapArray[Tank_yDivPos_2][Tank_xDivPos_2+ 2] = 1'b0;
-											MapArray[Tank_yDivPos_2][Tank_xDivPos_2+ 3] = 1'b0;
+											MapArray[Tank_yDivPos_2][4 * Tank_xDivPos_2   ] = 1'b0;	
+											MapArray[Tank_yDivPos_2][4 * Tank_xDivPos_2+ 1] = 1'b0;
+											MapArray[Tank_yDivPos_2][4 * Tank_xDivPos_2+ 2] = 1'b0;
+											MapArray[Tank_yDivPos_2][4 * Tank_xDivPos_2+ 3] = 1'b0;
 											
 											CoinValue = CoinValue + 1;
 										end
@@ -429,58 +454,69 @@ always @(posedge Master_Clock_In)
 										//Finally getting to the actual tank controls
 											if (Up    == 1)
 											    begin
-												    yPosition     = yPosition - 1;
+												    Tank_yPos     = Tank_yPos - MoveSpeed;
 												    PrevDirection = Up_Direction;
 											    end
 											    
 											else if (Right == 1)
 											    begin
-												    xPosition     = xPosition + 1;
+												    Tank_xPos     = Tank_xPos + MoveSpeed;
 												    PrevDirection = Right_Direction;
 											    end
 											
 											else if (Down  == 1)
 											    begin
-												    yPosition     = yPosition + 1;
+												    Tank_yPos     = Tank_yPos + MoveSpeed;
 												    PrevDirection = Down_Direction;		
 											    end
 											
 											else if (Left  == 1)
 											    begin
-												    xPosition     = xPosition - 1;  
+												    Tank_xPos     = Tank_xPos - MoveSpeed;  
 												    PrevDirection = Left_Direction;		
 											    end
 										end
 								end 	    
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
+							xDivPos = ((Val_Row_In[9:5])%20);
+                            yDivPos = ((Val_Col_In[9:5])%15);
                             
+                            MapArrayData_Y   = MapArray[yDivPos];
+                            MapArrayData_X_3 = MapArrayData_Y[4*xDivPos];
+                            MapArrayData_X_2 = MapArrayData_Y[4*xDivPos + 1];
+                            MapArrayData_X_1 = MapArrayData_Y[4*xDivPos + 2];
+                            MapArrayData_X_0 = MapArrayData_Y[4*xDivPos + 3];
+                            
+                            MapArray_X = {MapArrayData_X_3, MapArrayData_X_2, MapArrayData_X_1, MapArrayData_X_0 };
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////    
                             //within tank bounding box, set image to tank
-                            if ((Val_Col_In >= yPosition) & (Val_Col_In <= yPosition + TankWidth) & (Val_Row_In >= xPosition) & (Val_Row_In <= xPosition + TankWidth))
+                            if ((Val_Col_In >= Tank_yPos) & (Val_Col_In < Tank_yPos + TankWidth) & (Val_Row_In >= Tank_xPos) & (Val_Row_In < Tank_xPos + TankWidth))
                                 begin
 									//If moving upwards, image is normal orientation
 									if (PrevDirection == Up_Direction)
 										begin
-											Tank_XInput = Val_Row_In - xPosition;
-											Tank_YInput = Val_Col_In - yPosition;
+											Tank_XInput = Val_Row_In - Tank_xPos;
+											Tank_YInput = Val_Col_In - Tank_yPos;
 										end
 									// If moving downwards, image is mirrored in x
 									else if (PrevDirection == Down_Direction)    
 										begin
-											Tank_XInput = TankWidth - (Val_Row_In - xPosition)%TankWidth;
-											Tank_YInput = TankWidth - (Val_Col_In - yPosition)%TankWidth;
+											Tank_XInput = TankWidth - (Val_Row_In - Tank_xPos)%TankWidth;
+											Tank_YInput = TankWidth - (Val_Col_In - Tank_yPos)%TankWidth;
 										end
 									// if moving left, image is flipped to horizontal direction
 									else if (PrevDirection == Left_Direction)    
 										begin
-											Tank_YInput = Val_Row_In - xPosition;
-											Tank_XInput = Val_Col_In - yPosition;
+											Tank_YInput = Val_Row_In - Tank_xPos;
+											Tank_XInput = Val_Col_In - Tank_yPos;
 										end
 									// if moving right, image is flipped to horizontal, and then mirrored in y 
 									else if (PrevDirection == Right_Direction)
 										begin
-											Tank_YInput = TankWidth - (Val_Row_In - xPosition)%TankWidth;
-											Tank_XInput = TankWidth - (Val_Col_In - yPosition)%TankWidth;
+											Tank_YInput = TankWidth - (Val_Row_In - Tank_xPos)%TankWidth;
+											Tank_XInput = TankWidth - (Val_Col_In - Tank_yPos)%TankWidth;
 										end
             
                                     Red   = Colour_Data_Tank[11:8];
@@ -489,11 +525,21 @@ always @(posedge Master_Clock_In)
                                 
                                 end
 							//Bullet Draw
-							else if ((Val_Col_In >= Bullet_YInput_1 - BulletWidth/2) & (Val_Col_In <= Bullet_YInput_1 + BulletWidth/2) & (Val_Row_In >= Bullet_XInput_1- BulletWidth/2) & (Val_Row_In <= Bullet_XInput_1 + BulletWidth/2))
+							else if (((Val_Col_In >= Bullet_YInput_1 - BulletWidth/2) & (Val_Col_In <= Bullet_YInput_1 + BulletWidth/2)) & ((Val_Row_In >= Bullet_XInput_1- BulletWidth/2) & (Val_Row_In <= Bullet_XInput_1 + BulletWidth/2)))
 								begin
-									Red 	= 4'h0;
-									Green 	= 4'h0;
-									Blue 	= 4'h0;
+								    if (Bullet_Fired_1 == 1)
+                                        begin
+                                            Red 	= 4'hF;
+                                            Green 	= 4'h0;
+                                            Blue 	= 4'h0;
+                                        end
+                                    else
+                                        begin
+                                            Red 	= 4'hF;
+                                            Green 	= 4'hF;
+                                            Blue 	= 4'hF;
+                                        end
+                                            
 								end
 							else	
                                 //if not within tank bounding box, image is dependant on colour of map.
@@ -501,13 +547,13 @@ always @(posedge Master_Clock_In)
 								//	rather than just flat colours.
                                 begin
 									case (MapArray_X)
-										4'h0:begin  Red = 4'hE; Green = 4'hE; Blue = 4'hE; end
+										4'h0:begin  Red = 4'hF; Green = 4'hF; Blue = 4'hF; end
 										
 										4'h1:begin 	Red   = Colour_Data_Solid_Block[11:8];
 																//Green = Colour_Data_Brick[ 7:4];
-													Blue  = Colour_Data_Solid_Block[ 7:4];
+													Green  = Colour_Data_Solid_Block[ 7:4];
 																//Blue  = Colour_Data_Brick[ 3:0];
-													Green = Colour_Data_Solid_Block[ 3:0];
+													Blue = Colour_Data_Solid_Block[ 3:0];
 										     end
 											 
 										4'h2:begin  Red   = Colour_Data_Brick[11:8];
@@ -515,10 +561,20 @@ always @(posedge Master_Clock_In)
 													Blue  = Colour_Data_Brick[ 3:0];
 											 end	
 											 
-										4'h3:begin  Red 	= Colour_Data_Coin[11:8];
-													Green 	= Colour_Data_Coin[ 7:4];
-													Blue 	= Colour_Data_Coin[ 3:0];
-											 end 
+										4'h3:begin 
+                                                if (ColourSwitch_1 == 0)
+                                                    begin
+                                                        Red 	= Colour_Data_Coin[11:8];
+                                                        Green 	= Colour_Data_Coin[ 7:4];
+                                                        Blue 	= Colour_Data_Coin[ 3:0];
+                                                    end
+                                                else
+                                                    begin
+                                                        Red 	= Colour_Data_Nyan[11:8];
+                                                        Green 	= Colour_Data_Nyan[ 7:4];
+                                                        Blue 	= Colour_Data_Nyan[ 3:0];
+											         end 
+                                                end
 										
 										4'h4:begin	Red = 4'hF; Green = 4'h4; Blue = 4'h4; end
 										4'h5:begin	Red = 4'hF; Green = 4'h4; Blue = 4'h4; end
