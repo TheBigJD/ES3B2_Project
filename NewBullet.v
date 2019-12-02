@@ -104,9 +104,6 @@ begin
 				
 				default: Fire1_Enable = 1'b0;
 			endcase
-		end
-		
-	
-	
+		end	
 	
 end
