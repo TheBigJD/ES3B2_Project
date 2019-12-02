@@ -5,8 +5,11 @@ module AudioPlayback(
 		
 );
 
-parameter [10:0] SamplingFreq = 11'd22050; 
-reg [10:0] SamplingClockDiv = 11'b0;
+parameter [15:0] SamplingFreq = 16'd10000;
+//NOTE - this value needs to be 25MHz/SamplingFrequency
+
+ 
+reg [15:0] SamplingClockDiv = 16'b0;
 
 reg [15:0] SampleCount = 16'b0;
 
