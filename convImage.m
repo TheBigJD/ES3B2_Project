@@ -18,11 +18,11 @@ im_green_4  = im_green/16;
 im_blue_4   = im_blue/16;
 
 subplot(1,3,1);
-image(im_red_4);
+imagesc(im_red_4);
 subplot(1,3,2);
-image(im_green_4);
+imagesc(im_green_4);
 subplot(1,3,3);
-image(im_blue_4);
+imagesc(im_blue_4);
 
 Image = zeros(Image_Height, Image_Width, 3);
 Image = uint8(Image);
