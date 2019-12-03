@@ -150,6 +150,7 @@ always @(posedge Master_Clock_In)
 						MapArray[12] = 80'h00222202222220222200;
 						MapArray[13] = 80'h13000000000000000031;
 						MapArray[14] = 80'h11111111100111111111;
+						end
 						
 					2: begin // Pacman level
 						MapArray[ 0] = 80'h11111111111111111111;
@@ -328,7 +329,7 @@ always @(posedge Master_Clock_In)
                                             else
                                                 begin
 													Bullet_YInput_1 = 10'd16;
-													Bullet_XInput = 10'd16;
+													Bullet_XInput_1 = 10'd16;
 													Bullet_Fired_1 = 1'b0;
                                                 end
                                         end

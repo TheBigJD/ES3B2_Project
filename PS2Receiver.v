@@ -1,6 +1,5 @@
-`timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-//Interface for USB HID Interface for keyboard
+//Interface for USB HID Interface for keyboard. Adapted from http://students.iitk.ac.in/eclub/assets/tutorials/keyboard.pdf
 //////////////////////////////////////////////////////////////////////////////////
 
 
@@ -8,23 +7,35 @@ module PS2Receiver(
     input clk, // Onboard clock
     input keyb_clk, // Clock from Keyboard
     input kdata, // Keyboard datacode
-    output [31:0] keycodeout // Keycode output
+    output reg [4:0]p1keys,
+    output reg [4:0]p2keys,
+    output reg [7:0]debugLEDs // TODO rm debug
     );
+    
+    reg [7:0] up       = 8'b01110101,
+              down     = 8'b01110010, 
+              left     = 8'b01101011, 
+              right    = 8'b01110100, 
+              space    = 8'b00101001, 
+              w        = 8'b00011101, 
+              a        = 8'b00011100, 
+              s        = 8'b00011011, 
+              d        = 8'b00100011, 
+              tab      = 8'b00001101,
+              enter    = 8'b01011010,
+              backspa  = 8'b01100110,
+              STOP     = 8'hF0;
     
     
     wire keyb_clk_debounced, kdata_debounced; // Output wires from debounce module
     reg [7:0]datacur;
     reg [7:0]dataprev;
     reg [3:0]count;
-    reg [31:0]keycode; // 32 bits keycode
-    reg flag; //
-    
-    initial begin // Setup initial params to zero
-        keycode[31:0]<=0'h00000000;
-        count<=4'b0000;
-        flag<=1'b0;
-    end
-    
+    reg [15:0]count1 = 0;
+    reg [15:0]keydelay = 16'h61A8; //delay of 1ms
+    reg flag;                                 // to detect when keycode has been read in
+ 
+  
 debouncer debounce(  // Debounce both data and clock inputs coming from keyboard
     .clk(clk),
     .In0(keyb_clk),
@@ -56,23 +67,82 @@ begin
         else if(count==10) 
 			begin 
 				count<=0;			
-			end
-        
+			end					
+			        
+end
+ // TODO currently pressed buttons don't lose value when keys are let go
+ //as the routine below is not called (flag only high when keys are pressed)
+ //So add condidtion to set p1keys and p2keys to 5'b00000 if no keys pressed
+always @(posedge flag)          // Only start shifting data out after flag has been high and low (indicating a keyboard data has been loaded in)
+begin 		            
+
+    debugLEDs = datacur;
+
+            case(datacur)  //map value from keyboard to smaller 3 bit array
+                up      : begin
+                            p1keys <= 5'b00001; // Set LEDs and set UP to high. Same for remaining directions
+                            
+                          end
+                left    : begin
+                            p1keys <= 5'b00010;
+
+                        end
+                right   : begin
+                            p1keys <= 5'b00100;
+
+                        end
+                down    : begin
+                            p1keys <= 5'b01000;
+
+                        end
+                space   : begin
+                             p1keys <= 5'b10000;         
+         
+                        end
+                        
+                    w   : begin
+                            p2keys <= 5'b00001; //up is 1
+
+                        end
+                        
+                    a   : begin
+                            p2keys <= 5'b00010; // left is 2
+
+                        end
+                        
+                    s   : begin 
+                            p2keys <= 5'b00100; // right is 3
+                         
+                        end
+                        
+                    d   : begin
+                            p2keys <= 5'b01000; // down is 4
+
+                            
+                        end
+                        
+                    tab : begin
+                            p2keys <= 5'b10000; // shoot (tab) is 5
+
+                        end
+                    
+                    STOP : begin // Reset directions to zero for when stop key is reached
+                            p1keys <= 5'b00000; 
+                            p2keys <= 5'b00000;
+                          
+                    
+                           end
+                default : begin
+                            p1keys <= 5'b00000;
+                            p2keys <= 5'b00000;                                                               
+                                                       
+                          end
+                          
+               endcase                                      
+                      
 end
 
-//Replace this section with single keycodes, prototype to get it displayed on 4 digit segment display
+  
 
-always @(posedge flag)begin 		// Only start shifting data out after flag has been high and low (indicating a keyboard data has been loaded in)
-    if (dataprev!=datacur)
-		begin
-			keycode[31:24]<=keycode[23:16];
-			keycode[23:16]<=keycode[15:8];
-			keycode[15:8]<=dataprev;
-			keycode[7:0]<=datacur;
-			dataprev<=datacur;
-		end
-end
-    
-assign keycodeout=keycode; // Ouput 4 previous digits entered on keyboard
-    
+
 endmodule

@@ -106,7 +106,7 @@ wire [11:0] Colour_Data_Tank1;
 TankImage M5 (.Master_Clock_In(Master_Clock_In), .xInput(Tank1_XInput), .yInput(Tank1_YInput), .ColourData(Colour_Data_Tank1));
 reg [9:0] Tank2_XInput, Tank2_YInput = 10'b0;	
 wire [11:0] Colour_Data_Tank2;
-TankImage M5 (.Master_Clock_In(Master_Clock_In), .xInput(Tank2_XInput), .yInput(Tank2_YInput), .ColourData(Colour_Data_Tank2));
+TankImage M11 (.Master_Clock_In(Master_Clock_In), .xInput(Tank2_XInput), .yInput(Tank2_YInput), .ColourData(Colour_Data_Tank2));
 
 
 wire [11:0] Colour_Data_Brick;
@@ -211,6 +211,7 @@ always @(posedge Master_Clock_In)
 						MapArray[12] = 80'h00222202222220222200;
 						MapArray[13] = 80'h13000000000000000031;
 						MapArray[14] = 80'h11111111100111111111;
+						end
 						
 					2: begin // Pacman level
 						MapArray[ 0] = 80'h11111111111111111111;
@@ -1058,8 +1059,9 @@ always @(posedge Master_Clock_In)
 
             
                                 end            
-                    end
-                
+                    
+                        end
+                        
                 else
                     begin
                         Red 	= 4'h2;
