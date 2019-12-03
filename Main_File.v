@@ -1,6 +1,6 @@
 module Main_File( input Master_Clock_In, Reset_N_In,
-                  input Up, Down, Left, Right, Fire,
-                  //input PS2?CLK, PS2_DATA, // provisional keyboard inputs
+                 //input Up, Down, Left, Right, Fire,
+                  input PS2_CLK, PS2_DATA, // provisional keyboard inputs
                   input ColourSwitch_1,
                   input MoveSpeed_1, MoveSpeed_0,
                   input LevelSwitch_1, LevelSwitch_0,
@@ -11,8 +11,8 @@ module Main_File( input Master_Clock_In, Reset_N_In,
                   output Sync_Horiz_Out, Sync_Vert_Out,
                   
                   output a, b, c, d, e, f, g,
-                  output [7:0] an
-                  //output LED[2:0], LED2[2:0] //provisional keyboard inputs
+                  output [7:0] an,
+                  output [3:0]LED, [3:0]LED2 //provisional keyboard inputs
                   
             	);
    
@@ -30,7 +30,8 @@ module Main_File( input Master_Clock_In, Reset_N_In,
                
 
                
-   // wire up, down, left, right; //Provisional keyboard wires
+    //wire Up, Down, Left, Right, Fire; //Provisional keyboard wires
+    wire [4:0] p1keys, p2keys;
    
    
     Clock_Div M1
@@ -53,7 +54,7 @@ module Main_File( input Master_Clock_In, Reset_N_In,
     (
         .Master_Clock_In(Clock_25MHz), .Reset_N_In(Reset_N_In),
         
-        .Up(Up), .Down(Down), .Left(Left), .Right(Right), .Fire(Fire),
+        .Up(p1keys[0]), .Down(p1keys[3]), .Left(p1keys[1]), .Right(p1keys[2]), .Fire(p1keys[4]),
         
         .ColourSwitch_1(ColourSwitch_1),
         .LevelSwitch_1(LevelSwitch_1), .LevelSwitch_0(LevelSwitch_0),
@@ -68,19 +69,23 @@ module Main_File( input Master_Clock_In, Reset_N_In,
         .CoinValue(Coins[7:0])
     );
     
-//	PS2Receiver M4 // provisional keyboard driver
-//	(
-//	   .clk(Clock_25MHz),
-//	   .keyb_clk(PS2_CLK),
-//	   .kdata(PS2_DATA),
-//	   .p1keys(LED[2:0]),
-//	   .p2keys(LED2[2:0]),
-//	   .U(up),
-//	   .D(down),
-//	   .L(left),
-//	   .R(right)
+	PS2Receiver M4 // provisional keyboard driver
+	(
+	   .clk(Clock_25MHz),
+	   .keyb_clk(PS2_CLK),
+	   .kdata(PS2_DATA),
+	   .p1keys(p1keys),
+	   .p2keys(p2keys),
+	   .debugLEDs({LED, LED2})
+//	   .U(Up),
+//	   .D(Down),
+//	   .L(Left),
+//	   .R(Right),
+//	   .F(Fire)
 	
-//	);
+	);
+	
+	//assign LED = p1keys, LED2 = p2keys;
 	   
 	   
 	seginterface M5 

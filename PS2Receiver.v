@@ -7,18 +7,15 @@ module PS2Receiver(
     input clk, // Onboard clock
     input keyb_clk, // Clock from Keyboard
     input kdata, // Keyboard datacode
-    output reg [2:0]p1keys,
-    output reg [2:0]p2keys,
-    output reg U, 
-    output reg D, 
-    output reg L, 
-    output reg R
+    output reg [4:0]p1keys,
+    output reg [4:0]p2keys,
+    output reg [7:0]debugLEDs // TODO rm debug
     );
     
     reg [7:0] up       = 8'b01110101,
               down     = 8'b01110010, 
               left     = 8'b01101011, 
-              right    = 8'b11100000, 
+              right    = 8'b01110100, 
               space    = 8'b00101001, 
               w        = 8'b00011101, 
               a        = 8'b00011100, 
@@ -30,14 +27,14 @@ module PS2Receiver(
               STOP     = 8'hF0;
     
     
-    reg keyb_clk_debounced, kdata_debounced; // Output wires from debounce module
+    wire keyb_clk_debounced, kdata_debounced; // Output wires from debounce module
     reg [7:0]datacur;
     reg [7:0]dataprev;
     reg [3:0]count;
     reg [15:0]count1 = 0;
     reg [15:0]keydelay = 16'h61A8; //delay of 1ms
     reg flag;                                 // to detect when keycode has been read in
-    
+ 
   
 debouncer debounce(  // Debounce both data and clock inputs coming from keyboard
     .clk(clk),
@@ -70,70 +67,82 @@ begin
         else if(count==10) 
 			begin 
 				count<=0;			
-			end
-        
+			end					
+			        
 end
-
+ // TODO currently pressed buttons don't lose value when keys are let go
+ //as the routine below is not called (flag only high when keys are pressed)
+ //So add condidtion to set p1keys and p2keys to 5'b00000 if no keys pressed
 always @(posedge flag)          // Only start shifting data out after flag has been high and low (indicating a keyboard data has been loaded in)
 begin 		            
-    
-    if(datacur == 8'hf0)  
-    begin  //F0 is the 'stop code', indicating when a key has been pressed
-            case(dataprev)  //map value from keyboard to smaller 3 bit array
+
+    debugLEDs = datacur;
+
+            case(datacur)  //map value from keyboard to smaller 3 bit array
                 up      : begin
-                            p1keys <= 3'b001; // Set LEDs and set UP to high. Same for remaining directions
-                            U <= 1'b1;
-//                            D <= 1'b0;
-//                            L <= 1'b0;
-//                            R <= 1'b0;
+                            p1keys <= 5'b00001; // Set LEDs and set UP to high. Same for remaining directions
                             
                           end
                 left    : begin
-                            p1keys <= 3'b010;
-                            L <= 1'b1;
+                            p1keys <= 5'b00010;
+
                         end
                 right   : begin
-                            p1keys <= 3'b011;
-                            R <= 1'b1;
+                            p1keys <= 5'b00100;
+
                         end
                 down    : begin
-                            p1keys <= 3'b100;
-                            D <= 1'b1;
+                            p1keys <= 5'b01000;
+
                         end
-                space   : p1keys <= 3'b101;
-                
-                    w   : p2keys <= 3'b001; //up is 1
-                    a   : p2keys <= 3'b010; // left is 2
-                    s   : p2keys <= 3'b011; // right is 3
-                    d   : p2keys <= 3'b100; // down is 4
-                    tab : p2keys <= 3'b101; // shoot (tab) is 5
+                space   : begin
+                             p1keys <= 5'b10000;         
+         
+                        end
+                        
+                    w   : begin
+                            p2keys <= 5'b00001; //up is 1
+
+                        end
+                        
+                    a   : begin
+                            p2keys <= 5'b00010; // left is 2
+
+                        end
+                        
+                    s   : begin 
+                            p2keys <= 5'b00100; // right is 3
+                         
+                        end
+                        
+                    d   : begin
+                            p2keys <= 5'b01000; // down is 4
+
+                            
+                        end
+                        
+                    tab : begin
+                            p2keys <= 5'b10000; // shoot (tab) is 5
+
+                        end
                     
+                    STOP : begin // Reset directions to zero for when stop key is reached
+                            p1keys <= 5'b00000; 
+                            p2keys <= 5'b00000;
+                          
+                    
+                           end
                 default : begin
-                            p1keys <= 3'b000;
-                            p2keys <= 3'b000;
-                            
-                            U <= 1'b0; // Reset directions to zero for no keyboard input
-                            D <= 1'b0;
-                            L <= 1'b0;
-                            R <= 1'b0;                          
-                            
+                            p1keys <= 5'b00000;
+                            p2keys <= 5'b00000;                                                               
                                                        
                           end
-            endcase  
-            
-//            if(count1 == keydelay) // try add 1ms delay after direction change. Doesn't seem to work.
-//                count1 = 0;
-//            else 
-//                count1 = count1 + 1;
-          end            
-                     
-    else
-        begin   
-            dataprev = datacur;
-            U <= 1'b0;              // Reset directions to zero for no keyboard input
-            D <= 1'b0;
-            L <= 1'b0;
-            R <= 1'b0;   
+                          
+               endcase                                      
+                      
 end
-    end
+
+  
+
+
 endmodule
