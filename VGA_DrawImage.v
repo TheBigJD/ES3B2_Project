@@ -104,7 +104,7 @@ reg [5:0] Bullet_ClockCounter = 6'd30;
 	
 //reg [0:79] BulletArray_1 = 80'b0;
 reg [3:0] BulletArray_X = 4'b0;
-reg [79:0] BulletArrayData_Y = 80'b0;
+reg [0:79] BulletArrayData_Y = 80'b0;
 reg BulletArrayData_X_0, BulletArrayData_X_1, BulletArrayData_X_2, BulletArrayData_X_3;
 
 reg [9:0] Bullet_xDivPos_1, Bullet_yDivPos_1 = 10'b0;
@@ -299,7 +299,7 @@ always @(posedge Master_Clock_In)
                                                     Bullet_Fired_1 	=  1'b0;
                                                 end
                                             
-                                            if ((BulletArray_X == 1) | (BulletArray_X == 2))
+                                            else if ((BulletArray_X == 1) | (BulletArray_X == 2))
                                                 begin
                                                     Bullet_XInput_1 = 10'd16;
                                                     Bullet_YInput_1 = 10'd16;
@@ -313,16 +313,23 @@ always @(posedge Master_Clock_In)
                                                             MapArray[Bullet_yDivPos_1][4 * Bullet_xDivPos_1 + 3] = 1'b0;
                                                         end
                                                 end
-                                                
-                                            else
-                                                begin
-                                                    case (Bullet_Dir_1)
+                                        	
+                                        	else if ((BulletArray_X == 3) | (BulletArray_X == 0))
+                                        		begin    		                                            
+                                                      case (Bullet_Dir_1)
                                                         Up_Direction    : Bullet_YInput_1 = Bullet_YInput_1 - 5;
                                                         Down_Direction  : Bullet_YInput_1 = Bullet_YInput_1 + 5;
                                                         Left_Direction  : Bullet_XInput_1 = Bullet_XInput_1 - 5;
                                                         Right_Direction : Bullet_XInput_1 = Bullet_XInput_1 + 5;
                                                         default: Bullet_Fired_1 = 1'b0;
-                                                    endcase	
+                                                    endcase		
+                                                end
+                                                
+                                            else
+                                                begin
+													Bullet_YInput_1 = 10'd16;
+													Bullet_XInput = 10'd16;
+													Bullet_Fired_1 = 1'b0;
                                                 end
                                         end
                                     else
@@ -398,15 +405,15 @@ always @(posedge Master_Clock_In)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////  
                                     // If y-coordinate is at screen limit, move to other side of screen
-                                    if (Tank1_yPos == EdgeWidth)
+                                    if (Tank1_yPos <= EdgeWidth)
                                         Tank1_yPos = Pixels_Vert - TankWidth - 3;
-                                    else if (Tank1_yPos == Pixels_Vert - TankWidth - EdgeWidth)
+                                    else if (Tank1_yPos >= Pixels_Vert - TankWidth - EdgeWidth)
                                         Tank1_yPos = 3;
 
                                     //if x-coordinate is at screen limit, move to other side of screen
-                                    if (Tank1_xPos == EdgeWidth)
+                                    if (Tank1_xPos <= EdgeWidth)
                                         Tank1_xPos = Pixels_Horiz - TankWidth - 3;
-                                    else if (Tank1_xPos == Pixels_Horiz - TankWidth - EdgeWidth)
+                                    else if (Tank1_xPos >= Pixels_Horiz - TankWidth - EdgeWidth)
                                         Tank1_xPos = 3;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////        
