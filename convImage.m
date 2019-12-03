@@ -5,7 +5,6 @@ importedImage = imread(inputFile);
 
 im_resized = imresize(importedImage, [Image_Height,Image_Width]);
 
-
 figure;
 imshow(importedImage);
 imshow(im_resized);
@@ -30,8 +29,6 @@ Image = uint8(Image);
 Image(:,:,1) = im_red_4;
 Image(:,:,2) = im_green_4;
 Image(:,:,3) = im_blue_4;
-
-
 
 Zero_Padded = cell(Image_Height * Image_Width, 1);
 
