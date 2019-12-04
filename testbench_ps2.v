@@ -15,8 +15,8 @@ module Testbench();
   reg [0:7] Keypress = 8'h75;
   reg [7:0] ii = 8'b0;
   
-//  PS2Receiver UUT (.clk(Clock), .keyb_clk(Keyb_clk), .kdata(kdata), .p1keys(p1keys), 
-//                   .p2keys(p2keys), .debugLEDs(debugLEDs));
+  PS2Receiver UUT (.clk(Clock), .keyb_clk(Keyb_clk), .kdata(kdata), .p1keys(p1keys), 
+                   .p2keys(p2keys), .debugLEDs(debugLEDs));
   
 
   always
@@ -50,3 +50,4 @@ module Testbench();
 
 
 endmodule
+

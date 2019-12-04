@@ -1,14 +1,16 @@
 module Main_File( input Master_Clock_In, Reset_N_In,
-                 //input Up, Down, Left, Right, Fire,
+                  input Up, Down, Left, Right, Fire,
                   input PS2_CLK, PS2_DATA, // provisional keyboard inputs
                   input ColourSwitch_1,
                   input MoveSpeed_1, MoveSpeed_0,
                   input LevelSwitch_1, LevelSwitch_0,
                   
-                 // output Debug_led, // TODO remove
+                  //output Debug_led, // TODO remove
                   
                   output [3:0] Main_Red_Out, Main_Green_Out, Main_Blue_Out,
                   output Sync_Horiz_Out, Sync_Vert_Out,
+                  
+                  output LED1_R, LED1_G, LED1_B, LED2_R, LED2_G, LED2_B, 
                   
                   output a, b, c, d, e, f, g,
                   output [7:0] an,
@@ -20,7 +22,7 @@ module Main_File( input Master_Clock_In, Reset_N_In,
    wire Disp_Enable;
    wire [9:0] Val_Column, Val_Row;
    
-   wire [7:0] Coins;
+   wire [7:0] Coins_1, Coins_2;
    wire [3:0]  sevSeg_5 = 4'b0, 
                sevSeg_4 = 4'b0, 
                sevSeg_3 = 4'b0, 
@@ -30,8 +32,11 @@ module Main_File( input Master_Clock_In, Reset_N_In,
                
 
                
-    //wire Up, Down, Left, Right, Fire; //Provisional keyboard wires
-    wire [4:0] p1keys, p2keys;
+   //wire Up1, Down1, Left1, Right1, Fire1; //Provisional keyboard wires for p1
+   //wire Up2, Down2, Left2, Right2, Fire2; //Provisional keyboard wires for p2
+   wire [4:0] p1keys, p2keys;
+   
+   
    
    
     Clock_Div M1
@@ -54,7 +59,8 @@ module Main_File( input Master_Clock_In, Reset_N_In,
     (
         .Master_Clock_In(Clock_25MHz), .Reset_N_In(Reset_N_In),
         
-        .Up(p1keys[0]), .Down(p1keys[3]), .Left(p1keys[1]), .Right(p1keys[2]), .Fire(p1keys[4]),
+        .Up1(p1keys[0]), .Down1(p1keys[3]), .Left1(p1keys[1]), .Right1(p1keys[2]), .Fire1(p1keys[4]),
+        .Up2(Up), .Down2(Down), .Left2(Left), .Right2(Right), .Fire2(Fire),        
         
         .ColourSwitch_1(ColourSwitch_1),
         .LevelSwitch_1(LevelSwitch_1), .LevelSwitch_0(LevelSwitch_0),
@@ -66,7 +72,7 @@ module Main_File( input Master_Clock_In, Reset_N_In,
         .Disp_Ena_In(Disp_Enable), .Val_Col_In(Val_Column), .Val_Row_In(Val_Row),
         .Red(Main_Red_Out), .Blue(Main_Blue_Out), .Green(Main_Green_Out),
         
-        .CoinValue(Coins[7:0])
+        .CoinValue_1(Coins_1[7:0]), .CoinValue_2(Coins_2[7:0])
     );
     
 	PS2Receiver M4 // provisional keyboard driver
@@ -85,14 +91,20 @@ module Main_File( input Master_Clock_In, Reset_N_In,
 	
 	);
 	
-	//assign LED = p1keys, LED2 = p2keys;
+	ColourLED_Control M5
+	(
+	   .LED1(Coins_1[2:0]), .LED2(Coins_2[2:0]),
+	   .LED1_R(LED1_R), .LED1_G(LED1_G), .LED1_B(LED1_B), 
+	   .LED2_R(LED2_R), .LED2_G(LED2_G), .LED2_B(LED2_B) 
+	);
+	
 	   
 	   
-	seginterface M5 
+	seginterface M6 
 	(
 		.clk(Clock_25MHz), .rst(Reset_N_In),
 		
-	    .dig7(Coins[7:4]), .dig6(Coins[3:0]), .dig5(sevSeg_5), .dig4(sevSeg_4),
+	    .dig7(Coins_1[7:4]), .dig6(Coins_1[3:0]), .dig5(Coins_2[7:4]), .dig4(Coins_2[3:0]),
 	 	.dig3(sevSeg_3), .dig2(sevSeg_2), .dig1(sevSeg_1), .dig0(sevSeg_0),
 
 		.a(a), .b(b), .c(c), .d(d), .e(e), .f(f), .g(g),
