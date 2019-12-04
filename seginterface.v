@@ -1,7 +1,7 @@
 module seginterface(
         input clk, rst,
         input [3:0] dig7, dig6, dig5, dig4, dig3, dig2, dig1, dig0,
-        output div_clk,
+        //output div_clk,
         output a, b, c, d, e, f, g,
         output [7:0] an
     );
@@ -14,8 +14,8 @@ module seginterface(
     always @(posedge clk)
         clk_count <= clk_count + 1'b1;
     
-    assign led_clk = clk_count[16];
-    assign div_clk = clk_count[25];
+    assign led_clk = clk_count[10];
+   // assign div_clk = clk_count[25];
     
     reg [7:0] led_strobe = 8'b11111110;
     always @(posedge led_clk)
