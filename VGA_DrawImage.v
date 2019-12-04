@@ -628,7 +628,7 @@ always @(posedge Master_Clock_In)
 											MapArray[Tank1_yDivPos_1][4 * Tank1_xDivPos_1+ 2] = 1'b0;
 											MapArray[Tank1_yDivPos_1][4 * Tank1_xDivPos_1+ 3] = 1'b0;
 											
-											CoinValue = CoinValue + 1;	
+											CoinValue_1 = CoinValue_1 + 1;	
 										end
 								
  									else if (Tank1Array_X_2 == 3)
@@ -638,7 +638,7 @@ always @(posedge Master_Clock_In)
 											MapArray[Tank1_yDivPos_1][4 * Tank1_xDivPos_2 + 2] = 1'b0;
 											MapArray[Tank1_yDivPos_1][4 * Tank1_xDivPos_2 + 3] = 1'b0;
 											
-											CoinValue = CoinValue + 1;	
+											CoinValue_1 = CoinValue_1 + 1;	
 										end
 								
  									else if (Tank1Array_X_3 == 3)
@@ -648,7 +648,7 @@ always @(posedge Master_Clock_In)
 											MapArray[Tank1_yDivPos_2][4 * Tank1_xDivPos_1+ 2] = 1'b0;
 											MapArray[Tank1_yDivPos_2][4 * Tank1_xDivPos_1+ 3] = 1'b0;
 											
-											CoinValue = CoinValue + 1;
+											CoinValue_1 = CoinValue_1 + 1;
 										end
 								
  									else if (Tank1Array_X_4 == 3)
@@ -658,7 +658,7 @@ always @(posedge Master_Clock_In)
 											MapArray[Tank1_yDivPos_2][4 * Tank1_xDivPos_2+ 2] = 1'b0;
 											MapArray[Tank1_yDivPos_2][4 * Tank1_xDivPos_2+ 3] = 1'b0;
 											
-											CoinValue = CoinValue + 1;
+											CoinValue_1 = CoinValue_1 + 1;
 										end
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -809,7 +809,7 @@ always @(posedge Master_Clock_In)
 											MapArray[Tank2_yDivPos_1][4 * Tank2_xDivPos_1+ 2] = 1'b0;
 											MapArray[Tank2_yDivPos_1][4 * Tank2_xDivPos_1+ 3] = 1'b0;
 											
-											CoinValue2 = CoinValue2 + 1;	
+											CoinValue_2 = CoinValue_2 + 1;	
 										end
 								
  									else if (Tank2Array_X_2 == 3)
@@ -819,7 +819,7 @@ always @(posedge Master_Clock_In)
 											MapArray[Tank2_yDivPos_1][4 * Tank2_xDivPos_2 + 2] = 1'b0;
 											MapArray[Tank2_yDivPos_1][4 * Tank2_xDivPos_2 + 3] = 1'b0;
 											
-											CoinValue2 = CoinValue2 + 1;	
+											CoinValue_2 = CoinValue_2 + 1;	
 										end
 								
  									else if (Tank2Array_X_3 == 3)
@@ -829,7 +829,7 @@ always @(posedge Master_Clock_In)
 											MapArray[Tank2_yDivPos_2][4 * Tank2_xDivPos_1+ 2] = 1'b0;
 											MapArray[Tank2_yDivPos_2][4 * Tank2_xDivPos_1+ 3] = 1'b0;
 											
-											CoinValue2 = CoinValue2 + 1;
+											CoinValue_2 = CoinValue_2 + 1;
 										end
 								
  									else if (Tank2Array_X_4 == 3)
@@ -839,7 +839,7 @@ always @(posedge Master_Clock_In)
 											MapArray[Tank2_yDivPos_2][4 * Tank2_xDivPos_2+ 2] = 1'b0;
 											MapArray[Tank2_yDivPos_2][4 * Tank2_xDivPos_2+ 3] = 1'b0;
 											
-											CoinValue2 = CoinValue2 + 1;
+											CoinValue_2 = CoinValue_2 + 1;
 										end
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////	
