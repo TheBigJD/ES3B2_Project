@@ -42,8 +42,6 @@ reg [2:0] PrevDirection_2     = 3'b000;
 reg [9:0] Tank1_xPos = 4;
 reg [9:0] Tank1_yPos = 4;	
 	
-reg [9:0] Tank1_xDivPos, Tank1_yDivPos;	
-	
 reg [9:0] Tank1_xDivPos_1, Tank1_yDivPos_1;
 reg [9:0] Tank1_xDivPos_2, Tank1_yDivPos_2;
 reg [9:0] Tank1_xPos2_Holder, Tank1_yPos2_Holder;
@@ -515,8 +513,8 @@ always @(posedge Master_Clock_In)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////                    
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////                    
                                     //Setting Bounding boxes for tank control. Looking for box state at x and y positions
-                                    Tank1_xDivPos = Tank1_xPos[9:5]%20;
-                                    Tank1_yDivPos = Tank1_yPos[9:5]%15;
+                                    Tank1_xDivPos_1 = Tank1_xPos[9:5]%20;
+                                    Tank1_yDivPos_1 = Tank1_yPos[9:5]%15;
                                     
 									Tank1_xPos2_Holder = Tank1_xPos + TankWidth;
 									Tank1_yPos2_Holder = Tank1_yPos + TankWidth;
@@ -527,11 +525,11 @@ always @(posedge Master_Clock_In)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////  
                                     //Top left
-                                    Tank1Array_1   = MapArray[Tank1_yDivPos];// This is the array for the map containing the 'bottom left#' of the tank
-                                    Tank1Array_1_3 = Tank1Array_1[4*Tank1_xDivPos  ];// This is bit 3 of [3:0] of the current position's status.
-                                    Tank1Array_1_2 = Tank1Array_1[4*Tank1_xDivPos+1];// This is bit 2 of [3:0] of the current position's status.
-                                    Tank1Array_1_1 = Tank1Array_1[4*Tank1_xDivPos+2];// This is bit 1 of [3:0] of the current position's status.v
-                                    Tank1Array_1_0 = Tank1Array_1[4*Tank1_xDivPos+3];// This is bit 0 of [3:0] of the current position's status.
+                                    Tank1Array_1   = MapArray[Tank1_yDivPos_1];// This is the array for the map containing the 'bottom left#' of the tank
+                                    Tank1Array_1_3 = Tank1Array_1[4*Tank1_xDivPos_1  ];// This is bit 3 of [3:0] of the current position's status.
+                                    Tank1Array_1_2 = Tank1Array_1[4*Tank1_xDivPos_1+1];// This is bit 2 of [3:0] of the current position's status.
+                                    Tank1Array_1_1 = Tank1Array_1[4*Tank1_xDivPos_1+2];// This is bit 1 of [3:0] of the current position's status.v
+                                    Tank1Array_1_0 = Tank1Array_1[4*Tank1_xDivPos_1+3];// This is bit 0 of [3:0] of the current position's status.
 									
                                     Tank1Array_X_1 = {Tank1Array_1_3, Tank1Array_1_2, Tank1Array_1_1, Tank1Array_1_0};
 									//This then returns the state of the box for the bottom-left point of the tank, allowing for the game logic to perform functions depending
@@ -540,7 +538,7 @@ always @(posedge Master_Clock_In)
 									// The same logic repeats for each corner of the tank.
 
                                     //Top right
-                                    Tank1Array_2   = MapArray[Tank1_yDivPos];
+                                    Tank1Array_2   = MapArray[Tank1_yDivPos_1];
                                     Tank1Array_2_3 = Tank1Array_2[4*(Tank1_xDivPos_2 )  ];
                                     Tank1Array_2_2 = Tank1Array_2[4*(Tank1_xDivPos_2 )+1];
                                     Tank1Array_2_1 = Tank1Array_2[4*(Tank1_xDivPos_2 )+2];
@@ -695,8 +693,8 @@ always @(posedge Master_Clock_In)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////                
                                     //Setting Bounding boxes for tank control. Looking for box state at x and y positions
-                                    Tank2_xDivPos = Tank2_xPos[9:5]%20;
-                                    Tank2_yDivPos = Tank2_yPos[9:5]%15;
+                                    Tank2_xDivPos_1 = Tank2_xPos[9:5]%20;
+                                    Tank2_yDivPos_1 = Tank2_yPos[9:5]%15;
                                     
 									Tank2_xPos2_Holder = Tank2_xPos + TankWidth;
 									Tank2_yPos2_Holder = Tank2_yPos + TankWidth;
