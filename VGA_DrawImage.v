@@ -106,18 +106,16 @@ reg [9:0] Tank1_XInput, Tank1_YInput = 10'b0;
 wire [11:0] Colour_Data_Tank1;
 TankImage M5 (.Master_Clock_In(Master_Clock_In), .xInput(Tank1_XInput), .yInput(Tank1_YInput), .ColourData(Colour_Data_Tank1));
 
-reg [9:0] Explosion1_XInput, Explosion1_YInput = 10'b0;	
 wire [11:0] Colour_Data_Explosion1;
 Explosion M13 (.Master_Clock_In(Master_Clock_In), .xInput(Tank1_XInput), .yInput(Tank1_YInput), .ColourData(Colour_Data_Explosion1));
-
-reg [9:0] Explosion1_XInput, Explosion1_YInput = 10'b0;	
-wire [11:0] Colour_Data_Explosion2;
-Explosion M14 (.Master_Clock_In(Master_Clock_In), .xInput(Tank1_XInput), .yInput(Tank1_YInput), .ColourData(Colour_Data_Explosion2));
 
 
 reg [9:0] Tank2_XInput, Tank2_YInput = 10'b0;	
 wire [11:0] Colour_Data_Tank2;
 TankImage M11 (.Master_Clock_In(Master_Clock_In), .xInput(Tank2_XInput), .yInput(Tank2_YInput), .ColourData(Colour_Data_Tank2));
+wire [11:0] Colour_Data_Explosion2;
+Explosion M14 (.Master_Clock_In(Master_Clock_In), .xInput(Tank2_XInput), .yInput(Tank2_YInput), .ColourData(Colour_Data_Explosion2));
+
 
 
 wire [11:0] Colour_Data_Brick;
@@ -985,7 +983,11 @@ always @(posedge Master_Clock_In)
                                             Blue  = Colour_Data_Tank2[3:0];
                                         end
                                     else
-                                        
+                                        begin
+                                            Red = Colour_Data_Explosion1[11:8];
+                                            Green = Colour_Data_Explosion1[ 7:4];                                        
+                                            Blue = Colour_Data_Explosion1[ 3:0];  
+                                        end                                      
                                 end
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////                               
@@ -993,35 +995,43 @@ always @(posedge Master_Clock_In)
                           //within tank bounding box, set image to tank
                             else if ((Val_Col_In > Tank2_yPos) & (Val_Col_In < Tank2_yPos + TankWidth) & (Val_Row_In > Tank2_xPos) & (Val_Row_In < Tank2_xPos + TankWidth))
                                 begin
-									//If moving upwards, image is normal orientation
-									if (PrevDirection_2 == Up_Direction)
-										begin
-											Tank2_XInput = Val_Row_In - Tank2_xPos;
-											Tank2_YInput = Val_Col_In - Tank2_yPos;
-										end
-									// If moving downwards, image is mirrored in x
-									else if (PrevDirection_2 == Down_Direction)    
-										begin
-											Tank2_XInput = TankWidth - (Val_Row_In - Tank2_xPos)%TankWidth;
-											Tank2_YInput = TankWidth - (Val_Col_In - Tank2_yPos)%TankWidth;
-										end
-									// if moving left, image is flipped to horizontal direction
-									else if (PrevDirection_2 == Left_Direction)    
-										begin
-											Tank2_YInput = Val_Row_In - Tank2_xPos;
-											Tank2_XInput = Val_Col_In - Tank2_yPos;
-										end
-									// if moving right, image is flipped to horizontal, and then mirrored in y 
-									else if (PrevDirection_2 == Right_Direction)
-										begin
-											Tank2_YInput = TankWidth - (Val_Row_In - Tank2_xPos)%TankWidth;
-											Tank2_XInput = TankWidth - (Val_Col_In - Tank2_yPos)%TankWidth;
-										end
-            
-                                    Red   = Colour_Data_Tank2[11:8];
-                                    Green = Colour_Data_Tank2[ 7:4];
-                                    Blue  = Colour_Data_Tank2[ 3:0];
-                                
+                                    if (Tank2_Dead == 1)
+                                        begin
+                                            //If moving upwards, image is normal orientation
+                                            if (PrevDirection_2 == Up_Direction)
+                                                begin
+                                                    Tank2_XInput = Val_Row_In - Tank2_xPos;
+                                                    Tank2_YInput = Val_Col_In - Tank2_yPos;
+                                                end
+                                            // If moving downwards, image is mirrored in x
+                                            else if (PrevDirection_2 == Down_Direction)    
+                                                begin
+                                                    Tank2_XInput = TankWidth - (Val_Row_In - Tank2_xPos)%TankWidth;
+                                                    Tank2_YInput = TankWidth - (Val_Col_In - Tank2_yPos)%TankWidth;
+                                                end
+                                            // if moving left, image is flipped to horizontal direction
+                                            else if (PrevDirection_2 == Left_Direction)    
+                                                begin
+                                                    Tank2_YInput = Val_Row_In - Tank2_xPos;
+                                                    Tank2_XInput = Val_Col_In - Tank2_yPos;
+                                                end
+                                            // if moving right, image is flipped to horizontal, and then mirrored in y 
+                                            else if (PrevDirection_2 == Right_Direction)
+                                                begin
+                                                    Tank2_YInput = TankWidth - (Val_Row_In - Tank2_xPos)%TankWidth;
+                                                    Tank2_XInput = TankWidth - (Val_Col_In - Tank2_yPos)%TankWidth;
+                                                end
+                    
+                                            Red   = Colour_Data_Tank2[11:8];
+                                            Green = Colour_Data_Tank2[ 7:4];
+                                            Blue  = Colour_Data_Tank2[ 3:0];
+                                        end
+                                    else
+                                        begin
+                                            Red = Colour_Data_Explosion2[11:8];
+                                            Green = Colour_Data_Explosion2[ 7:4];                                        
+                                            Blue = Colour_Data_Explosion2[ 3:0];  
+                                        end  
                                 end 
 							
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
