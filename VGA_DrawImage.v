@@ -10,7 +10,8 @@ module VGA_Draw(
     input ColourSwitch_1,
     input MoveSpeed_1, MoveSpeed_0,
     
-	output reg [7:0] CoinValue = 8'd0,
+	output reg [7:0] CoinValue_1 = 8'd0,
+	output reg [7:0] CoinValue_2 = 8'd0,
 	
 	output reg [3:0] Red   = 4'h0, 
 	output reg [3:0] Blue  = 4'h0, 
@@ -34,8 +35,6 @@ reg [2:0] MoveSpeed = 3'b1;
 parameter [3:0] BulletWidth = 4'd10;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-reg [9:0] PrevX, PrevY = 10'b0;
 
 reg [2:0] PrevDirection_1     = 3'b000;	
 reg [2:0] PrevDirection_2     = 3'b000;	
@@ -129,8 +128,8 @@ Coin_Image M9( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(V
 reg [9:0] Bullet1_XInput, Bullet1_YInput = 10'd16;
 reg Bullet1_Fired_prev_1 = 1'b0;
 reg Bullet1_Fired_prev_2 = 1'b0;
-reg Bullet1_Fired		= 1'b0;
-reg [2:0] Bullet1_Dir  = 2'b000;
+reg Bullet1_Fired		 = 1'b0;
+reg [2:0] Bullet1_Dir    = 3'b000;
 
 reg [5:0] Bullet1_ClockDiv = 6'b0;
 reg [5:0] Bullet1_ClockCounter = 6'd30;
@@ -148,8 +147,8 @@ reg [9:0] Bullet1_xDivPos, Bullet1_yDivPos = 10'b0;
 reg [9:0] Bullet2_XInput, Bullet2_YInput = 10'd16;
 reg Bullet2_Fired_prev_1 = 1'b0;
 reg Bullet2_Fired_prev_2 = 1'b0;
-reg Bullet2_Fired		= 1'b0;
-reg [2:0] Bullet2_Dir  = 2'b000;
+reg Bullet2_Fired		 = 1'b0;
+reg [2:0] Bullet2_Dir    = 3'b000;
 
 reg [5:0] Bullet2_ClockDiv = 6'b0;
 reg [5:0] Bullet2_ClockCounter = 6'd30;
@@ -500,8 +499,8 @@ always @(posedge Master_Clock_In)
                                             Bullet2_Fired 	= 1'b0;
                                         end
                                         
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                                     // If y-coordinate is at screen limit, move to other side of screen
                                     if (Tank1_yPos == EdgeWidth)
                                         Tank1_yPos = Pixels_Vert - TankWidth - 1;
@@ -528,7 +527,7 @@ always @(posedge Master_Clock_In)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////  
                                     //Top left
-                                    Tank1Array_1   = MapArray[Tank1_yDivPos_1];// This is the array for the map containing the 'bottom left#' of the tank
+                                    Tank1Array_1   = MapArray[Tank1_yDivPos];// This is the array for the map containing the 'bottom left#' of the tank
                                     Tank1Array_1_3 = Tank1Array_1[4*Tank1_xDivPos  ];// This is bit 3 of [3:0] of the current position's status.
                                     Tank1Array_1_2 = Tank1Array_1[4*Tank1_xDivPos+1];// This is bit 2 of [3:0] of the current position's status.
                                     Tank1Array_1_1 = Tank1Array_1[4*Tank1_xDivPos+2];// This is bit 1 of [3:0] of the current position's status.v
@@ -573,7 +572,7 @@ always @(posedge Master_Clock_In)
                                         Tank1_yPos = 3;
 
                                     //if x-coordinate is at screen limit, move to other side of screen
-                                    if (Tank1_xPos <= EdgeWidth)
+                                    else if (Tank1_xPos <= EdgeWidth)
                                         Tank1_xPos = Pixels_Horiz - TankWidth - 3;
                                     else if (Tank1_xPos >= Pixels_Horiz - TankWidth - EdgeWidth)
                                         Tank1_xPos = 3;
@@ -668,7 +667,7 @@ always @(posedge Master_Clock_In)
 										begin
 											MoveSpeed = 1 + MoveSpeed_0 + MoveSpeed_1 * 2;
 										//Finally getting to the actual tank controls
-											if (Up1    == 1)
+											if 		(Up1    == 1)
 											    begin
 												    Tank1_yPos     = Tank1_yPos - MoveSpeed;
 												    PrevDirection_1 = Up_Direction;
@@ -693,27 +692,11 @@ always @(posedge Master_Clock_In)
 											    end
 										end
 								 	    
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                                    // If y-coordinate is at screen limit, move to other side of screen
-                                    if (Tank2_yPos == EdgeWidth)
-                                        Tank2_yPos = Pixels_Vert - TankWidth - 1;
-                                    else if (Tank2_yPos == Pixels_Vert - TankWidth - EdgeWidth)
-                                        Tank2_yPos = 10'b1;
-                                        
-                                    //if x-coordinate is at screen limit, move to other side of screen
-                                    if (Tank2_xPos == EdgeWidth)
-                                        Tank2_xPos = Pixels_Horiz - TankWidth - 1;
-                                    else if (Tank2_xPos == Pixels_Horiz - TankWidth - EdgeWidth)
-                                        Tank2_xPos = 10'b1;
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////                    
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////                    
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////         
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////                
                                     //Setting Bounding boxes for tank control. Looking for box state at x and y positions
-                                    Tank1_xDivPos = Tank2_xPos[9:5]%20;
-                                    Tank1_yDivPos = Tank2_yPos[9:5]%15;
+                                    Tank2_xDivPos = Tank2_xPos[9:5]%20;
+                                    Tank2_yDivPos = Tank2_yPos[9:5]%15;
                                     
 									Tank2_xPos2_Holder = Tank2_xPos + TankWidth;
 									Tank2_yPos2_Holder = Tank2_yPos + TankWidth;
@@ -721,13 +704,13 @@ always @(posedge Master_Clock_In)
                                     Tank2_xDivPos_2 = Tank2_xPos2_Holder[9:5]%20;
                                     Tank2_yDivPos_2 = Tank2_yPos2_Holder[9:5]%15;
                                     
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////  
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////       
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
                                     //Top left
                                     Tank2Array_1   = MapArray[Tank2_yDivPos_1];// This is the array for the map containing the 'bottom left#' of the tank
                                     Tank2Array_1_3 = Tank2Array_1[4*Tank2_xDivPos_1  ];// This is bit 3 of [3:0] of the current position's status.
                                     Tank2Array_1_2 = Tank2Array_1[4*Tank2_xDivPos_1+1];// This is bit 2 of [3:0] of the current position's status.
-                                    Tank2Array_1_1 = Tank2Array_1[4*Tank2_xDivPos_1+2];// This is bit 1 of [3:0] of the current position's status.v
+                                    Tank2Array_1_1 = Tank2Array_1[4*Tank2_xDivPos_1+2];// This is bit 1 of [3:0] of the current position's status.
                                     Tank2Array_1_0 = Tank2Array_1[4*Tank2_xDivPos_1+3];// This is bit 0 of [3:0] of the current position's status.
 									
                                     Tank2Array_X_1 = {Tank2Array_1_3, Tank2Array_1_2, Tank2Array_1_1, Tank2Array_1_0};
@@ -760,8 +743,9 @@ always @(posedge Master_Clock_In)
                                     Tank2Array_4_0 = Tank2Array_4[4*(Tank2_xDivPos_2 )+3];
                                     Tank2Array_X_4 = {Tank2Array_4_3, Tank2Array_4_2, Tank2Array_4_1, Tank2Array_4_0};   
 									
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////  
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////         
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////            
+
                                     // If y-coordinate is at screen limit, move to other side of screen
                                     if (Tank2_yPos <= EdgeWidth)
                                         Tank2_yPos = Pixels_Vert - TankWidth - 3;
@@ -769,7 +753,7 @@ always @(posedge Master_Clock_In)
                                         Tank2_yPos = 3;
 
                                     //if x-coordinate is at screen limit, move to other side of screen
-                                    if (Tank2_xPos <= EdgeWidth)
+                                    else if (Tank2_xPos <= EdgeWidth)
                                         Tank2_xPos = Pixels_Horiz - TankWidth - 3;
                                     else if (Tank2_xPos >= Pixels_Horiz - TankWidth - EdgeWidth)
                                         Tank2_xPos = 3;
@@ -825,17 +809,17 @@ always @(posedge Master_Clock_In)
 											MapArray[Tank2_yDivPos_1][4 * Tank2_xDivPos_1+ 2] = 1'b0;
 											MapArray[Tank2_yDivPos_1][4 * Tank2_xDivPos_1+ 3] = 1'b0;
 											
-											CoinValue = CoinValue + 1;	
+											CoinValue2 = CoinValue2 + 1;	
 										end
 								
  									else if (Tank2Array_X_2 == 3)
 										begin
-											MapArray[Tank2_yDivPos_1][4 * Tank2_xDivPos_2	 ]   = 1'b0;	
+											MapArray[Tank2_yDivPos_1][4 * Tank2_xDivPos_2	 ] = 1'b0;	
 											MapArray[Tank2_yDivPos_1][4 * Tank2_xDivPos_2 + 1] = 1'b0;
 											MapArray[Tank2_yDivPos_1][4 * Tank2_xDivPos_2 + 2] = 1'b0;
 											MapArray[Tank2_yDivPos_1][4 * Tank2_xDivPos_2 + 3] = 1'b0;
 											
-											CoinValue = CoinValue + 1;	
+											CoinValue2 = CoinValue2 + 1;	
 										end
 								
  									else if (Tank2Array_X_3 == 3)
@@ -845,7 +829,7 @@ always @(posedge Master_Clock_In)
 											MapArray[Tank2_yDivPos_2][4 * Tank2_xDivPos_1+ 2] = 1'b0;
 											MapArray[Tank2_yDivPos_2][4 * Tank2_xDivPos_1+ 3] = 1'b0;
 											
-											CoinValue = CoinValue + 1;
+											CoinValue2 = CoinValue2 + 1;
 										end
 								
  									else if (Tank2Array_X_4 == 3)
@@ -855,15 +839,14 @@ always @(posedge Master_Clock_In)
 											MapArray[Tank2_yDivPos_2][4 * Tank2_xDivPos_2+ 2] = 1'b0;
 											MapArray[Tank2_yDivPos_2][4 * Tank2_xDivPos_2+ 3] = 1'b0;
 											
-											CoinValue = CoinValue + 1;
+											CoinValue2 = CoinValue2 + 1;
 										end
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-										
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////	
 									else
 										begin
 										//Finally getting to the actual tank controls
-											if (Up2    == 1)
+												 if (Up2    == 1)
 											    begin
 												    Tank2_yPos     = Tank2_yPos - MoveSpeed;
 												    PrevDirection_2 = Up_Direction;
@@ -888,8 +871,8 @@ always @(posedge Master_Clock_In)
 											    end
 										end
 								end 	    
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////   
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
+////////////////////////////////////////////////////////////////////////////////////////////////////////////// //////////////////////////////////////////////////////////////////////////////////////////////////////////////    
 							Tank2_xDivPos = ((Val_Row_In[9:5])%20);
                             Tank2_yDivPos = ((Val_Col_In[9:5])%15);
                             
@@ -967,15 +950,13 @@ always @(posedge Master_Clock_In)
 										end
             
                                     Red   = Colour_Data_Tank2[11:8];
-                                    Green = Colour_Data_Tank2[7:4];
-                                    Blue  = Colour_Data_Tank2[3:0];
+                                    Green = Colour_Data_Tank2[ 7:4];
+                                    Blue  = Colour_Data_Tank2[ 3:0];
                                 
                                 end 
 							
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////// 							
-							
-							
 							//Bullet Draw
 							else if (((Val_Col_In >= Bullet1_YInput - BulletWidth/2) & (Val_Col_In <= Bullet1_YInput + BulletWidth/2))
 							       & ((Val_Row_In >= Bullet1_XInput - BulletWidth/2) & (Val_Row_In <= Bullet1_XInput + BulletWidth/2))
