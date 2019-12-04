@@ -21,8 +21,7 @@ always @(posedge Master_Clock_In)
 		Inputs = {a, b};
 
 		case(Inputs)    
-		Converted_Image
-20'b00000000000000000000 : ColourData = 12'hFFF;
+			20'b00000000000000000000 : ColourData = 12'hFFF;
 20'b00000000010000000000 : ColourData = 12'hFFF;
 20'b00000000100000000000 : ColourData = 12'hFFF;
 20'b00000000110000000000 : ColourData = 12'hFFF;
@@ -1046,7 +1045,6 @@ always @(posedge Master_Clock_In)
 20'b00000111010000011111 : ColourData = 12'hFFF;
 20'b00000111100000011111 : ColourData = 12'hFFF;
 20'b00000111110000011111 : ColourData = 12'hFFF;
-
 			default: ColourData = 12'h000;
 		endcase
 	end

@@ -3,7 +3,7 @@ module Main_File( input Master_Clock_In, Reset_N_In,
                   input PS2_CLK, PS2_DATA, // provisional keyboard inputs
                   input ColourSwitch_1,
                   input MoveSpeed_1, MoveSpeed_0,
-                  input LevelSwitch_1, LevelSwitch_0,
+                  input LevelSwitch_2, LevelSwitch_1, LevelSwitch_0,
                   
                   //output Debug_led, // TODO remove
                   
@@ -35,6 +35,7 @@ module Main_File( input Master_Clock_In, Reset_N_In,
    //wire Up1, Down1, Left1, Right1, Fire1; //Provisional keyboard wires for p1
    //wire Up2, Down2, Left2, Right2, Fire2; //Provisional keyboard wires for p2
    wire [4:0] p1keys, p2keys;
+   wire [7:0] P1_Deaths, P2_Deaths;
    
    
    
@@ -63,7 +64,7 @@ module Main_File( input Master_Clock_In, Reset_N_In,
         .Up2(Up), .Down2(Down), .Left2(Left), .Right2(Right), .Fire2(Fire),        
         
         .ColourSwitch_1(ColourSwitch_1),
-        .LevelSwitch_1(LevelSwitch_1), .LevelSwitch_0(LevelSwitch_0),
+        .LevelSwitch_2(LevelSwitch_2), .LevelSwitch_1(LevelSwitch_1), .LevelSwitch_0(LevelSwitch_0), 
         .MoveSpeed_1(MoveSpeed_1), .MoveSpeed_0(MoveSpeed_0),
         
        // .debug_led(Debug_led),
@@ -71,6 +72,8 @@ module Main_File( input Master_Clock_In, Reset_N_In,
         
         .Disp_Ena_In(Disp_Enable), .Val_Col_In(Val_Column), .Val_Row_In(Val_Row),
         .Red(Main_Red_Out), .Blue(Main_Blue_Out), .Green(Main_Green_Out),
+        
+        .P1_Deaths(P1_Deaths), .P2_Deaths(P2_Deaths),
         
         .CoinValue_1(Coins_1[7:0]), .CoinValue_2(Coins_2[7:0])
     );
@@ -104,8 +107,8 @@ module Main_File( input Master_Clock_In, Reset_N_In,
 	(
 		.clk(Clock_25MHz), .rst(Reset_N_In),
 		
-	    .dig7(Coins_1[7:4]), .dig6(Coins_1[3:0]), .dig5(Coins_2[7:4]), .dig4(Coins_2[3:0]),
-	 	.dig3(sevSeg_3), .dig2(sevSeg_2), .dig1(sevSeg_1), .dig0(sevSeg_0),
+	    .dig7(Coins_1[7:4]), .dig6(Coins_1[3:0]), .dig5(P1_Deaths[7:4]), .dig4(P1_Deaths[3:0]),
+	 	.dig3(Coins_2[7:4]), .dig2(Coins_2[3:0]), .dig1(P2_Deaths[7:4]), .dig0(P2_Deaths[3:0]),
 
 		.a(a), .b(b), .c(c), .d(d), .e(e), .f(f), .g(g),
 		.an(an)

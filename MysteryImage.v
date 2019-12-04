@@ -21,7 +21,7 @@ begin
 Inputs = {a, b};
 
     case(Inputs)
-    //Converted_ImageConverted_Image
+    //Converted_Image
 20'b00000000000000000000 : ColourData = 12'hFFF;
 20'b00000000010000000000 : ColourData = 12'hFFF;
 20'b00000000100000000000 : ColourData = 12'hFFF;
@@ -1046,7 +1046,6 @@ Inputs = {a, b};
 20'b00000111010000011111 : ColourData = 12'hFFF;
 20'b00000111100000011111 : ColourData = 12'hFFF;
 20'b00000111110000011111 : ColourData = 12'hFFF;
-
 
 
 

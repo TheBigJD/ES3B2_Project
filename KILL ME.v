@@ -6,12 +6,15 @@ module VGA_Draw(
     input Up1, Down1, Left1, Right1, Fire1,
     input Up2, Down2, Left2, Right2, Fire2,
     
-    input LevelSwitch_1, LevelSwitch_0,
+    input LevelSwitch_2, LevelSwitch_1, LevelSwitch_0,
     input ColourSwitch_1,
     input MoveSpeed_1, MoveSpeed_0,
     
 	output reg [7:0] CoinValue_1 = 8'd0,
 	output reg [7:0] CoinValue_2 = 8'd0,
+	
+	output reg [7:0] P1_Deaths = 8'd0,
+	output reg [7:0] P2_Deaths = 8'd0,
 	
 	output reg [3:0] Red   = 4'h0, 
 	output reg [3:0] Blue  = 4'h0, 
@@ -32,9 +35,15 @@ parameter TankWidth   = 24;
 reg [2:0] MoveSpeed = 3'b1;
 	
 parameter [3:0] BulletWidth = 4'd10;
+
+reg [7:0] Max_Deaths = 8'd5;
+
+reg  Reset_Val = 0;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 reg [5:0] Dead_Counter = 6'd60;
+reg Reset_Counter;
+
 
 reg [2:0] PrevDirection_1     = 3'b000;	
 reg [2:0] PrevDirection_2     = 3'b000;	
@@ -179,8 +188,23 @@ reg MapArrayData_X_3, MapArrayData_X_2, MapArrayData_X_1, MapArrayData_X_0;
 
 always @(posedge Master_Clock_In)	
 	begin
-		if (Reset_N_In == 0)
+		if ((Reset_N_In == 0) | (Reset_Val == 1))
 			begin
+                if (Reset_Counter == 250000)
+                    begin
+                                               
+                        Reset_Val = 1'b0;
+                        Reset_Counter = 0;
+                     end
+                else
+                    Reset_Counter = Reset_Counter + 1;
+               
+			    P1_Deaths = 8'b0;
+			    P2_Deaths = 8'b0;
+			    
+			    CoinValue_1 = 8'b0;
+			    CoinValue_2 = 8'b0;
+			    
                 Red   = 4'h0;     
                 Blue  = 4'h0;
                 Green = 4'h0;
@@ -188,17 +212,37 @@ always @(posedge Master_Clock_In)
                 Bullet1_Fired = 1'b0;
                 Bullet1_XInput = 10'd16;
                 Bullet1_YInput = 10'd16;
-                Tank1_xPos = 10'd5;
-                Tank1_yPos = 10'd5;
+                Tank1_xPos = 32 + 4;
+                Tank1_yPos = 32 + 4;
 				            
 				Bullet2_Fired 	    =  1'b0;
                 Bullet2_XInput 	    = 10'd16;
                 Bullet2_YInput   	= 10'd16;
-                Tank2_xPos 			= 10'd5;
-                Tank2_yPos 			= 10'd5;
+                Tank2_xPos 			= 579;
+                Tank2_yPos 			= 419;
 				
 				
-				case ({LevelSwitch_1, LevelSwitch_0})
+				case ({LevelSwitch_2, LevelSwitch_1, LevelSwitch_0})
+				    4: begin
+				    
+				        MapArray_X[ 0] = 80'h11111111111111111111;
+                        MapArray_X[ 1] = 80'h13300013100000003331;
+                        MapArray_X[ 2] = 80'h13320012100122122121;
+                        MapArray_X[ 3] = 80'h10010012100233233201;
+                        MapArray_X[ 4] = 80'h10020003000233233201;
+                        MapArray_X[ 5] = 80'h10010012100233122101;
+                        MapArray_X[ 6] = 80'h00023323233122133200;
+                        MapArray_X[ 7] = 80'h00010012100233233200;
+                        MapArray_X[ 8] = 80'h10020003000233122101;
+                        MapArray_X[ 9] = 80'h10010003000122100221;
+                        MapArray_X[10] = 80'h10000121210233200001;
+                        MapArray_X[11] = 80'h12200000000200233201;
+                        MapArray_X[12] = 80'h13200011100200200131;
+                        MapArray_X[13] = 80'h10200033300000000331;
+                        MapArray_X[14] = 80'h11111111111111111111;                        
+				    
+				       end
+				       
 					3: begin
 						MapArray[ 0] = 80'h11111111100111111111;
 						MapArray[ 1] = 80'h13000000000000000031;
@@ -254,9 +298,9 @@ always @(posedge Master_Clock_In)
                     end
 				    
 				    
-				    0: begin
+				    default: begin
                         MapArray[ 0] = 80'b0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000;
-                        MapArray[ 1] = 80'b0000_0010_0011_0010_0011_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0011_0010_0011_0010_0000;
+                        MapArray[ 1] = 80'b0000_0000_0011_0010_0011_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0011_0010_0011_0000_0000;
                         MapArray[ 2] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
                         MapArray[ 3] = 80'b0000_0010_0010_0010_0010_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0010_0010_0010_0010_0000;
                         MapArray[ 4] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
@@ -268,7 +312,7 @@ always @(posedge Master_Clock_In)
                         MapArray[10] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
                         MapArray[11] = 80'b0000_0010_0010_0010_0010_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0010_0010_0010_0010_0000;
                         MapArray[12] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
-                        MapArray[13] = 80'b0000_0010_0011_0010_0011_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0011_0010_0011_0010_0000;
+                        MapArray[13] = 80'b0000_0000_0011_0010_0011_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0011_0010_0011_0000_0000;
                         MapArray[14] = 80'b0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000;
         			end
                     
@@ -387,6 +431,7 @@ always @(posedge Master_Clock_In)
                                                     &((Bullet1_YInput >= Tank2_yPos) & (Bullet1_YInput <= Tank2_yPos + TankWidth)))
                                                 begin
                                                    Tank2_Dead = 1'b1;
+                                                   P2_Deaths = P2_Deaths + 1;
 
                                                    Bullet1_XInput = 10'd16;
                                                    Bullet1_YInput = 10'd16;
@@ -492,6 +537,7 @@ always @(posedge Master_Clock_In)
                                         	        &((Bullet2_YInput >= Tank1_yPos) & (Bullet2_YInput <= Tank1_yPos + TankWidth)))
                                                 begin
                                         	       Tank1_Dead = 1'b1;
+                                        	       P1_Deaths = P1_Deaths + 1;
 
                                         	       Bullet2_XInput = 10'd16;
                                                    Bullet2_YInput = 10'd16;
@@ -553,7 +599,7 @@ always @(posedge Master_Clock_In)
 									// The same logic repeats for each corner of the tank.
 
                                     //Top right
-                                    Tank1Array_2   = MapArray[Tank1_yDivPos_2];
+                                    Tank1Array_2   = MapArray[Tank1_yDivPos_1];
                                     Tank1Array_2_3 = Tank1Array_2[4*(Tank1_xDivPos_2 )  ];
                                     Tank1Array_2_2 = Tank1Array_2[4*(Tank1_xDivPos_2 )+1];
                                     Tank1Array_2_1 = Tank1Array_2[4*(Tank1_xDivPos_2 )+2];
@@ -621,16 +667,16 @@ always @(posedge Master_Clock_In)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 									
                                     // If y-coordinate is at screen limit, move to other side of screen
-                                    if (Tank1_yPos <= EdgeWidth)
-                                        Tank1_yPos = Pixels_Vert - TankWidth - 3;
+                                    if (Tank1_yPos <= EdgeWidth + MoveSpeed)
+                                        Tank1_yPos = Pixels_Vert - TankWidth - MoveSpeed - 1;
                                     else if (Tank1_yPos >= Pixels_Vert - TankWidth - EdgeWidth)
-                                        Tank1_yPos = 3;
+                                        Tank1_yPos = MoveSpeed + 1;
 
                                     //if x-coordinate is at screen limit, move to other side of screen
-                                    else if (Tank1_xPos <= EdgeWidth)
-                                        Tank1_xPos = Pixels_Horiz - TankWidth - 3;
+                                    else if (Tank1_xPos <= EdgeWidth + MoveSpeed)
+                                        Tank1_xPos = Pixels_Horiz - TankWidth - MoveSpeed - 1;
                                     else if (Tank1_xPos >= Pixels_Horiz - TankWidth - EdgeWidth)
-                                        Tank1_xPos = 3;
+                                        Tank1_xPos = MoveSpeed + 1;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////        
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
                                     else if (Tank1_Dead == 1)
@@ -648,50 +694,50 @@ always @(posedge Master_Clock_In)
 
                                         end
 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////       
+                                    //If bottom edges are in boundary
+									else if (((Tank1Array_X_3 == 1) | (Tank1Array_X_3 == 2)) & ((Tank1Array_X_4 == 1) | (Tank1Array_X_4 == 2)))
+                                                Tank1_yPos = Tank1_yPos - MoveSpeed;
+												
+                                    //If left edges are in boundary
+								    else if (((Tank1Array_X_1 == 1) | (Tank1Array_X_1 == 2)) & ((Tank1Array_X_3 == 1) | (Tank1Array_X_3 == 2)))
+                                                Tank1_xPos = Tank1_xPos + MoveSpeed;
+												
+                                    //if top edges are in boundary
+                                    else if (((Tank1Array_X_1 == 1) | (Tank1Array_X_1 == 2)) & ((Tank1Array_X_2 == 1) | (Tank1Array_X_2 == 2)))
+                                                Tank1_yPos = Tank1_yPos + MoveSpeed;
+												
+                                    // if right edges are in boundary
+                                    else if (((Tank1Array_X_2 == 1) | (Tank1Array_X_2 == 2)) & ((Tank1Array_X_4 == 1) | (Tank1Array_X_4 == 2)))
+                                                Tank1_xPos = Tank1_xPos - MoveSpeed;                        
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////        
 									// if top left is in boundary
 									else if ((Tank1Array_X_1 == 1) | (Tank1Array_X_1 == 2))
 										begin
-											Tank1_yPos = Tank1_yPos + 1;
-											Tank1_xPos = Tank1_xPos + 1;
+											Tank1_yPos = Tank1_yPos + MoveSpeed;
+											Tank1_xPos = Tank1_xPos + MoveSpeed;
 										end
 									// if top right is in boundary	
 									else if ((Tank1Array_X_2 == 1) | (Tank1Array_X_2 == 2))
 										begin
-											Tank1_yPos = Tank1_yPos + 1;
-											Tank1_xPos = Tank1_xPos - 1;
+											Tank1_yPos = Tank1_yPos + MoveSpeed;
+											Tank1_xPos = Tank1_xPos - MoveSpeed;
 										end	
 									// if bottom left is in boundary	
 									else if ((Tank1Array_X_3 == 1) | (Tank1Array_X_3 == 2))
 										begin
-											Tank1_yPos = Tank1_yPos - 1;
-											Tank1_xPos = Tank1_xPos + 1;
+											Tank1_yPos = Tank1_yPos - MoveSpeed;
+											Tank1_xPos = Tank1_xPos + MoveSpeed;
 										end	
 									// if bottom right is in boundary	
 									else if ((Tank1Array_X_4 == 1) | (Tank1Array_X_4 == 2))
 										begin
-											Tank1_yPos = Tank1_yPos - 1;
-											Tank1_xPos = Tank1_xPos - 1;
+											Tank1_yPos = Tank1_yPos - MoveSpeed;
+											Tank1_xPos = Tank1_xPos - MoveSpeed;
 										end	
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////       
-                                    //If bottom edges are in boundary
-									else if (((Tank1Array_X_3 == 1) | (Tank1Array_X_3 == 2)) & ((Tank1Array_X_4 == 1) | (Tank1Array_X_4 == 2)))
-                                                Tank1_yPos = Tank1_yPos - 1;
-												
-                                    //If left edges are in boundary
-								    else if (((Tank1Array_X_1 == 1) | (Tank1Array_X_1 == 2)) & ((Tank1Array_X_3 == 1) | (Tank1Array_X_3 == 2)))
-                                                Tank1_xPos = Tank1_xPos + 1;
-												
-                                    //if top edges are in boundary
-                                    else if (((Tank1Array_X_1 == 1) | (Tank1Array_X_1 == 2)) & ((Tank1Array_X_2 == 1) | (Tank1Array_X_2 == 2)))
-                                                Tank1_yPos = Tank1_yPos + 1;
-												
-                                    // if right edges are in boundary
-                                    else if (((Tank1Array_X_2 == 1) | (Tank1Array_X_2 == 2)) & ((Tank1Array_X_4 == 1) | (Tank1Array_X_4 == 2)))
-                                                Tank1_xPos = Tank1_xPos - 1;                        
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////  
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 									else if (Tank1Array_X_4 == 3)
@@ -784,16 +830,16 @@ always @(posedge Master_Clock_In)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////            
 
                                     // If y-coordinate is at screen limit, move to other side of screen
-                                    if (Tank2_yPos <= EdgeWidth)
-                                        Tank2_yPos = Pixels_Vert - TankWidth - 3;
+                                    if (Tank2_yPos <= EdgeWidth + MoveSpeed)
+                                        Tank2_yPos = Pixels_Vert - TankWidth - MoveSpeed - 1;
                                     else if (Tank2_yPos >= Pixels_Vert - TankWidth - EdgeWidth)
-                                        Tank2_yPos = 3;
+                                        Tank2_yPos = MoveSpeed + 1;
 
                                     //if x-coordinate is at screen limit, move to other side of screen
-                                    else if (Tank2_xPos <= EdgeWidth)
-                                        Tank2_xPos = Pixels_Horiz - TankWidth - 3;
+                                    else if (Tank2_xPos <= EdgeWidth + MoveSpeed)
+                                        Tank2_xPos = Pixels_Horiz - TankWidth - MoveSpeed - 1;
                                     else if (Tank2_xPos >= Pixels_Horiz - TankWidth - EdgeWidth)
-                                        Tank2_xPos = 3;
+                                        Tank2_xPos = MoveSpeed + 1;
                                         
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////                                                
@@ -810,51 +856,51 @@ always @(posedge Master_Clock_In)
                                             else
                                                 Dead_Counter = Dead_Counter + 1;
                                         end                                           
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////       
+                                    //If bottom edges are in boundary
+									else if (((Tank2Array_X_3 == 1) | (Tank2Array_X_3 == 2)) & ((Tank2Array_X_4 == 1) | (Tank2Array_X_4 == 2)))
+                                                Tank2_yPos = Tank2_yPos - MoveSpeed;
+												
+                                    //If left edges are in boundary
+								    else if (((Tank2Array_X_1 == 1) | (Tank2Array_X_1 == 2)) & ((Tank2Array_X_3 == 1) | (Tank2Array_X_3 == 2)))
+                                                Tank2_xPos = Tank2_xPos + MoveSpeed;
+												
+                                    //if top edges are in boundary
+                                    else if (((Tank2Array_X_1 == 1) | (Tank2Array_X_1 == 2)) & ((Tank2Array_X_2 == 1) | (Tank2Array_X_2 == 2)))
+                                                Tank2_yPos = Tank2_yPos + MoveSpeed;
+												
+                                    // if right edges are in boundary
+                                    else if (((Tank2Array_X_2 == 1) | (Tank2Array_X_2 == 2)) & ((Tank2Array_X_4 == 1) | (Tank2Array_X_4 == 2)))
+                                                Tank2_xPos = Tank2_xPos - MoveSpeed;         
+                                                                                                             
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////        
 									// if top left is in boundary
 									else if ((Tank2Array_X_1 == 1) | (Tank2Array_X_1 == 2))
 										begin
-											Tank2_yPos = Tank2_yPos + 1;
-											Tank2_xPos = Tank2_xPos + 1;
+											Tank2_yPos = Tank2_yPos + MoveSpeed;
+											Tank2_xPos = Tank2_xPos + MoveSpeed;
 										end
 									// if top right is in boundary	
 									else if ((Tank2Array_X_2 == 1) | (Tank2Array_X_2 == 2))
 										begin
-											Tank2_yPos = Tank2_yPos + 1;
-											Tank2_xPos = Tank2_xPos - 1;
+											Tank2_yPos = Tank2_yPos + MoveSpeed;
+											Tank2_xPos = Tank2_xPos - MoveSpeed;
 										end	
 									// if bottom left is in boundary	
 									else if ((Tank2Array_X_3 == 1) | (Tank2Array_X_3 == 2))
 										begin
-											Tank2_yPos = Tank2_yPos - 1;
-											Tank2_xPos = Tank2_xPos + 1;
+											Tank2_yPos = Tank2_yPos - MoveSpeed;
+											Tank2_xPos = Tank2_xPos + MoveSpeed;
 										end	
 									// if bottom right is in boundary	
 									else if ((Tank2Array_X_4 == 1) | (Tank2Array_X_4 == 2))
 										begin
-											Tank2_yPos = Tank2_yPos - 1;
-											Tank2_xPos = Tank2_xPos - 1;
-										end	
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////       
-                                    //If bottom edges are in boundary
-									else if (((Tank2Array_X_3 == 1) | (Tank2Array_X_3 == 2)) & ((Tank2Array_X_4 == 1) | (Tank2Array_X_4 == 2)))
-                                                Tank2_yPos = Tank2_yPos - 1;
-												
-                                    //If left edges are in boundary
-								    else if (((Tank2Array_X_1 == 1) | (Tank2Array_X_1 == 2)) & ((Tank2Array_X_3 == 1) | (Tank2Array_X_3 == 2)))
-                                                Tank2_xPos = Tank2_xPos + 1;
-												
-                                    //if top edges are in boundary
-                                    else if (((Tank2Array_X_1 == 1) | (Tank2Array_X_1 == 2)) & ((Tank2Array_X_2 == 1) | (Tank2Array_X_2 == 2)))
-                                                Tank2_yPos = Tank2_yPos + 1;
-												
-                                    // if right edges are in boundary
-                                    else if (((Tank2Array_X_2 == 1) | (Tank2Array_X_2 == 2)) & ((Tank2Array_X_4 == 1) | (Tank2Array_X_4 == 2)))
-                                                Tank2_xPos = Tank2_xPos - 1;         
-                                                                                                             
-                      
+											Tank2_yPos = Tank2_yPos - MoveSpeed;
+											Tank2_xPos = Tank2_xPos - MoveSpeed;
+										end	                      
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 									else if (Tank2Array_X_1 == 3)
@@ -938,6 +984,13 @@ always @(posedge Master_Clock_In)
 									CoinValue_2[7:4] = CoinValue_2[7:4] + 4'b0001;
 									CoinValue_2[3:0] = 4'b0000;										      
 								end    
+								
+							if((P1_Deaths >= Max_Deaths) | (P2_Deaths >= Max_Deaths))
+							begin
+							     Reset_Val = 1'b1;
+							     
+							end
+							
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
@@ -1016,8 +1069,8 @@ always @(posedge Master_Clock_In)
                                                     Tank2_XInput = TankWidth - (Val_Col_In - Tank2_yPos)%TankWidth;
                                                 end
                     
-                                            Red   = Colour_Data_Tank2[11:8];
-                                            Green = Colour_Data_Tank2[ 7:4];
+                                            Green = Colour_Data_Tank2[11:8];
+                                            Red   = Colour_Data_Tank2[ 7:4];
                                             Blue  = Colour_Data_Tank2[ 3:0];
                                         end
                                     else
@@ -1035,7 +1088,7 @@ always @(posedge Master_Clock_In)
 							       &  (Bullet1_Fired == 1))
 								begin
                                     Red 	= 4'h0;
-                                    Green 	= 4'h0;
+                                    Green 	= 4'h8; 
                                     Blue 	= 4'h0;
 								end
 								
@@ -1043,7 +1096,7 @@ always @(posedge Master_Clock_In)
 							       & ((Val_Row_In >= Bullet2_XInput - BulletWidth/2) & (Val_Row_In <= Bullet2_XInput + BulletWidth/2))
 							       &  (Bullet2_Fired == 1))
 							       begin
-                                        Red 	= 4'h0;
+                                        Red 	= 4'h8;
                                         Green 	= 4'h0;
                                         Blue 	= 4'h0;
                                    end
