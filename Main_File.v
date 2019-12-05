@@ -4,6 +4,7 @@ module Main_File( input Master_Clock_In, Reset_N_In,
                   input ColourSwitch_1,
                   input MoveSpeed_1, MoveSpeed_0,
                   input LevelSwitch_2, LevelSwitch_1, LevelSwitch_0,
+                  input AUD_PWM, //AUD_SD,
                   
                   //output Debug_led, // TODO remove
                   
@@ -115,6 +116,14 @@ module Main_File( input Master_Clock_In, Reset_N_In,
 	
 	);   
 	   
+   
+   
+   gen_test_sound M7
+   (
+        .clk(Master_Clock_In), .speaker(AUD_PWM) //.speaker_en(AUD_SD)
+   
+   );
+   
 	
         
 endmodule
