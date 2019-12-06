@@ -4,15 +4,15 @@
 
 
 module PS2Receiver(
-    input clk, // Onboard clock
-    input keyb_clk, // Clock from Keyboard
-    input kdata, // Keyboard datacode
-    output reg [4:0]p1keys,
+    input clk,                          // Onboard clock
+    input keyb_clk,                     // Clock from Keyboard
+    input kdata,                        // Keyboard datacode
+    output reg [4:0]p1keys,             // 5-bit output register for both players (one bit for up, down, left, right, shoot)
     output reg [4:0]p2keys,
-    output reg [7:0]debugLEDs // TODO rm debug
+    output reg [7:0]debugLEDs           // LEDs for displaying key scan code from keyboard
     );
     
-    reg [7:0] up       = 8'b01110101,
+    reg [7:0] up       = 8'b01110101,   // Hard coded binary values for each relevant key
               down     = 8'b01110010, 
               left     = 8'b01101011, 
               right    = 8'b01110100, 
@@ -27,16 +27,13 @@ module PS2Receiver(
               STOP     = 8'hF0;
     
     
-    wire keyb_clk_debounced, kdata_debounced; // Output wires from debounce module
-    reg [7:0]datacur;
-    reg [7:0]dataprev;
-    reg [3:0]count;
-    reg [15:0]count1 = 0;
-    reg [15:0]keydelay = 16'h61A8; //delay of 1ms
-    reg flag;                                 // to detect when keycode has been read in
+    wire keyb_clk_debounced, kdata_debounced;   // Output wires from debounce module
+    reg [7:0]datacur;                           // Register to store latest key press   
+    reg [3:0]count;                             // Counter to ensure all 10 data bits from keyboard are read 
+    reg flag;                                   // Set high when keycode has been read in
  
-  
-debouncer debounce(  // Debounce both data and clock inputs coming from keyboard
+// Debounce both data and clock inputs coming from keyboard
+debouncer debounce(  
     .clk(clk),
     .In0(keyb_clk),
     .In1(kdata),
@@ -56,7 +53,7 @@ begin
     6:datacur[5]<=kdata_debounced;
     7:datacur[6]<=kdata_debounced;
     8:datacur[7]<=kdata_debounced;
-    9:flag<=1'b1;					// Parity bit
+    9:flag<=1'b1;					// Parity bit - when read set flag high
     10:flag<=1'b0; 					// Stop bit
     
     endcase
@@ -72,77 +69,73 @@ begin
 end
  // TODO currently pressed buttons don't lose value when keys are let go
  //as the routine below is not called (flag only high when keys are pressed)
- //So add condidtion to set p1keys and p2keys to 5'b00000 if no keys pressed
-always @(posedge flag)          // Only start shifting data out after flag has been high and low (indicating a keyboard data has been loaded in)
+
+always @(posedge flag)          // Only start shifting data out after flag has been high and low (indicating keyboard data has been loaded in)
 begin 		            
 
     debugLEDs = datacur;
 
-            case(datacur)  //map value from keyboard to smaller 3 bit array
-                up      : begin
-                            p1keys <= 5'b00001; // Set LEDs and set UP to high. Same for remaining directions
-                            
-                          end
-                left    : begin
-                            p1keys <= 5'b00010;
-
-                        end
-                right   : begin
-                            p1keys <= 5'b00100;
-
-                        end
-                down    : begin
-                            p1keys <= 5'b01000;
-
-                        end
-                space   : begin
-                             p1keys <= 5'b10000;         
-         
-                        end
-                        
-                    w   : begin
-                            p2keys <= 5'b00001; //up is 1
-
-                        end
-                        
-                    a   : begin
-                            p2keys <= 5'b00010; // left is 2
-
-                        end
-                        
-                    d   : begin 
-                            p2keys <= 5'b00100; // right is 3
-                         
-                        end
-                        
-                    s   : begin
-                            p2keys <= 5'b01000; // down is 4
-
-                            
-                        end
-                        
-                    tab : begin
-                            p2keys <= 5'b10000; // shoot (tab) is 5
-
-                        end
+    case(datacur)  //map value from keyboard to smaller 3 bit array
+        up      : begin
+                    p1keys <= 5'b00001; // Set direction bit high, other bits low. Same for remaining controls. This routine only handles one key at a time. 
                     
-                    STOP : begin // Reset directions to zero for when stop key is reached
-                            p1keys <= 5'b00000; 
-                            p2keys <= 5'b00000;
-                          
+                  end
+        left    : begin
+                    p1keys <= 5'b00010;
+
+                end
+        right   : begin
+                    p1keys <= 5'b00100;
+
+                end
+        down    : begin
+                    p1keys <= 5'b01000;
+
+                end
+        space   : begin
+                     p1keys <= 5'b10000;         
+ 
+                end
+                
+            w   : begin
+                    p2keys <= 5'b00001; 
+
+                end
+                
+            a   : begin
+                    p2keys <= 5'b00010; 
+
+                end
+                
+            d   : begin 
+                    p2keys <= 5'b00100; 
+                 
+                end
+                
+            s   : begin
+                    p2keys <= 5'b01000; 
+
                     
-                           end
-                default : begin
-                            p1keys <= 5'b00000;
-                            p2keys <= 5'b00000;                                                               
-                                                       
-                          end
-                          
-               endcase                                      
+                end
+                
+            tab : begin
+                    p2keys <= 5'b10000; // shoot (tab) is 5
+
+                end
+            
+            STOP : begin // Reset directions to zero for when stop key (F0) is reached
+                    p1keys <= 5'b00000; 
+                    p2keys <= 5'b00000;
+                  
+            
+                   end
+        default : begin // Default to zero outputs.
+                    p1keys <= 5'b00000;
+                    p2keys <= 5'b00000;                                                               
+                                               
+                  end
+                  
+       endcase                                     
                       
 end
-
-  
-
-
 endmodule
