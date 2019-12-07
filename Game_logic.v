@@ -1,81 +1,104 @@
 module VGA_Draw(
+//Master Control Signals
     input Master_Clock_In, Reset_N_In,
+    
+//Signals from VGA Controller
     input Disp_Ena_In,
     input [9:0] Val_Col_In, Val_Row_In,
     
+//Signals to VGA output    
+    output reg [3:0] Red   = 4'h0, 
+	output reg [3:0] Blue  = 4'h0, 
+    output reg [3:0] Green = 4'h0
+
+//Tank control inputs
     input Up1, Down1, Left1, Right1, Fire1,
     input Up2, Down2, Left2, Right2, Fire2,
     
+//Game control inputs
     input LevelSwitch_2, LevelSwitch_1, LevelSwitch_0,
     input ColourSwitch_1,
     input MoveSpeed_1, MoveSpeed_0,
     
-	output reg [7:0] CoinValue_1 = 8'd0,
-	output reg [7:0] CoinValue_2 = 8'd0,
-	
-	output reg [7:0] P1_Deaths = 8'd0,
-	output reg [7:0] P2_Deaths = 8'd0,
-	
-	output reg [3:0] Red   = 4'h0, 
-	output reg [3:0] Blue  = 4'h0, 
-    output reg [3:0] Green = 4'h0
+//Signals to display on seven segment displays
+	output reg [7:0] CoinValue_1 	= 8'd0,
+	output reg [7:0] CoinValue_2 	= 8'd0,
+	output reg [7:0] P1_Deaths 		= 8'd0,
+	output reg [7:0] P2_Deaths 		= 8'd0,
+
 );
 
+//Constants for screen height and width
 parameter Pixels_Horiz = 640; //Num of Pixels in X axis
 parameter Pixels_Vert  = 480; //Num of Pixels in Y axis
 
-parameter EdgeWidth = 0;
+//Constants for object width
+parameter EdgeWidth = 0;	// Edge of screen - controlling bounding box around screen
+parameter [5:0] TankWidth 	= 6'd24;	// Tank size
+parameter [3:0] BulletWidth = 4'd10;	// Bullet Size
+
+//Constants for controls, removes need to use binary every time referencing variable
 parameter [2:0] Up_Direction      = 3'b100;	
 parameter [2:0] Down_Direction    = 3'b001;	
 parameter [2:0] Left_Direction    = 3'b010;	
 parameter [2:0] Right_Direction   = 3'b011;	
 
-parameter TankWidth   = 24;
-
+// Tank movement speed
 reg [2:0] MoveSpeed = 3'b1;
-	
-parameter [3:0] BulletWidth = 4'd10;
 
+//Maximum Deaths - control game reset
 reg [7:0] Max_Deaths = 8'd5;
-
 reg  Reset_Val = 0;
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//Counter variable to control tank death image
 reg [5:0] Dead_Counter = 6'd60;
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-reg [2:0] PrevDirection_1     = 3'b000;	
-reg [2:0] PrevDirection_2     = 3'b000;	
-
+//Position of Tank1, initialising at given position
 reg [9:0] Tank1_xPos = 32 + 4;
-reg [9:0] Tank1_yPos = 32 + 4;	
-	
-reg [9:0] Tank1_xDivPos_1, Tank1_yDivPos_1;
-reg [9:0] Tank1_xDivPos_2, Tank1_yDivPos_2;
-reg [9:0] Tank1_xPos2_Holder, Tank1_yPos2_Holder;
+reg [9:0] Tank1_yPos = 32 + 4;
+//Register for previous direction of tank - controls orientation of tank drawn and direction of bullet once fired
+reg [2:0] PrevDirection_1     = 3'b000;	
 
+//Variables to store x, y, x+w, and y+w - X and Y positions of each tank corner.	
+//		x position of left side, and y position of top side, with respect to screen position, divided by 32 to account for map resolution
+reg [9:0] Tank1_xDivPos_1, Tank1_yDivPos_1;
+//		x position of right side, and y position of bottom side, with respect to screen position, divided by 32 to account for map resolution
+reg [9:0] Tank1_xPos2_Holder, Tank1_yPos2_Holder; 	//variable is Tank1_yPos and Tank1_xPos, both + TankWidth
+reg [9:0] Tank1_xDivPos_2, Tank1_yDivPos_2;			//Divided by 32
+
+//Following four arrays are identical
+
+//Load in MapArray row for each tank corner position
 reg [0:79] Tank1Array_1 = 80'b0;
-reg [3:0]  Tank1Array_X_1 = 4'b0;
+//Store 4 1-bit value relating to position of the given corner
 reg Tank1Array_1_0, Tank1Array_1_1, Tank1Array_1_2, Tank1Array_1_3;
+//Store 4-bit value given from values above
+reg [3:0]  Tank1Array_X_1 = 4'b0;
 
 reg [0:79] Tank1Array_2 = 80'b0;
-reg [3:0] Tank1Array_X_2 = 4'b0;
 reg Tank1Array_2_0, Tank1Array_2_1, Tank1Array_2_2, Tank1Array_2_3;
+reg [3:0] Tank1Array_X_2 = 4'b0;
 
 reg [0:79] Tank1Array_3 = 80'b0;
-reg [3:0] Tank1Array_X_3 = 4'b0;
 reg Tank1Array_3_0, Tank1Array_3_1, Tank1Array_3_2, Tank1Array_3_3;
+reg [3:0] Tank1Array_X_3 = 4'b0;
 
 reg [0:79] Tank1Array_4 = 80'b0;
-reg [3:0] Tank1Array_X_4 = 4'b0;
 reg Tank1Array_4_0, Tank1Array_4_1, Tank1Array_4_2, Tank1Array_4_3;
+reg [3:0] Tank1Array_X_4 = 4'b0;
 
+//Condition is Tank1 has been shot or not
 reg Tank1_Dead = 1'b0;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 reg [9:0] Tank2_xPos = 640 - 25 - 4 - 32;
 reg [9:0] Tank2_yPos = 480 - 25 - 4 - 32;	
+
+reg [2:0] PrevDirection_2     = 3'b000;
 	
 reg [9:0] Tank2_xDivPos_1, Tank2_yDivPos_1;
 reg [9:0] Tank2_xDivPos_2, Tank2_yDivPos_2;
