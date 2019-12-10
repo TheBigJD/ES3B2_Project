@@ -4,13 +4,11 @@
 //
 
 
-
 module VGA_Control(
 	input  Master_Clock_In, Reset_N_In, 	// Main control signals Clock and Reset
 	output Sync_Horiz_Out, Sync_Vert_Out,	// Sync signals to signal to display 
 	output Disp_Ena_Out, 
-	output [9:0] Val_Col_Out, Val_Row_Out
-	
+	output [9:0] Val_Col_Out, Val_Row_Out 	// 10-bit outputs to store X and Y positions on screen	(need to store 640 and 480 in decimal)
 	);
 
 	parameter Pixels_Horiz = 640; //Num of Pixels in X axis
