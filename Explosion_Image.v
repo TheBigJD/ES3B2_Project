@@ -1,27 +1,30 @@
+//////////////////////////////////////////////////////////////////////////////////
+//Contains picture array for explosion image when tank is hit with bullet
+//////////////////////////////////////////////////////////////////////////////////
 module Explosion(
 
-  input Master_Clock_In,
-  input [9 : 0] xInput,
-  input [9 : 0] yInput,
-  output reg [11:0] ColourData = 12'h000
-
-);
-
-(* rom_style = "block" *)
-
-reg [19:0] Inputs = 20'd0;
-
-reg [9:0] a, b = 10'd0;
-
-always @(posedge Master_Clock_In)
-	begin
-		a = xInput % 25;
-		b = yInput % 25;
-
-		Inputs = {a, b};
-
-		case(Inputs)    
-			20'b00000000000000000000 : ColourData = 12'hFFF;
+  input Master_Clock_In,							// Input clock (25MHz)
+  input [9 : 0] xInput,                             // Get current X coordinate of screen
+  input [9 : 0] yInput,                             // Get current Y coordinate of screen
+  output reg [11:0] ColourData = 12'h000            // Outputting chosen colour in rgb values (3x 4-bit)
+                                                    
+);                                                  
+                                                    
+(* rom_style = "block" *)                           // Store array in block ram
+                                                    
+reg [19:0] Inputs = 20'd0;                          // Initialise combined X and Y input array
+                                                    
+reg [9:0] a, b = 10'd0;                             // Temp values for modulated X and Y coordinates
+                                                    
+always @(posedge Master_Clock_In)                   // Triggered on positive edge of the clock
+	begin                                           
+		a = xInput % 25;                            // Scaling for x dimension of screen
+		b = yInput % 25;                            // Scaling for y dimension of screen
+                                                    													
+		Inputs = {a, b};                            // Concatenate scaled X and Y values for easy reference
+                                                    
+		case(Inputs)                                //Case statement defining RGB values for every pixel position
+20'b00000000000000000000 : ColourData = 12'hFFF;    
 20'b00000000010000000000 : ColourData = 12'hFFF;
 20'b00000000100000000000 : ColourData = 12'hFFF;
 20'b00000000110000000000 : ColourData = 12'hFFF;
