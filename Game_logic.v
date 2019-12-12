@@ -56,6 +56,42 @@ reg [5:0] Dead_Counter = 6'd60;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//Map registers
+reg [0:79] MapArray [0:14];
+
+//Used for drawing the map
+//Stores current row being drawn
+reg [0:79] MapArrayData_Y = 80'b0;
+//Stores 4 1-bit values of map array for point being drawn
+reg MapArrayData_X_3, MapArrayData_X_2, MapArrayData_X_1, MapArrayData_X_0;
+//Stores as nibble
+reg [3:0]  MapArray_X = 4'b0;
+
+reg [9:0] xDivPos, yDivPos = 10'b0;
+
+
+//Expecting an error here
+MapArray[ 0] = 80'b0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000;
+MapArray[ 1] = 80'b0000_0000_0011_0010_0011_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0011_0010_0011_0000_0000;
+MapArray[ 2] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
+MapArray[ 3] = 80'b0000_0010_0010_0010_0010_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0010_0010_0010_0010_0000;
+MapArray[ 4] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
+MapArray[ 5] = 80'b0000_0010_0011_0010_0011_0010_0010_0011_0010_0010_0010_0010_0011_0010_0010_0011_0010_0011_0011_0000;
+MapArray[ 6] = 80'b0000_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0000;
+MapArray[ 7] = 80'b0000_0010_0010_0010_0010_0010_0011_0010_0010_0010_0010_0010_0010_0011_0010_0010_0010_0010_0010_0000;
+MapArray[ 8] = 80'b0000_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0011_0000;
+MapArray[ 9] = 80'b0000_0010_0011_0010_0011_0010_0010_0011_0010_0010_0010_0010_0011_0010_0010_0011_0010_0011_0010_0000;
+MapArray[10] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
+MapArray[11] = 80'b0000_0010_0010_0010_0010_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0010_0010_0010_0010_0000;
+MapArray[12] = 80'b0000_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0010_0011_0011_0011_0011_0010_0011_0011_0000;
+MapArray[13] = 80'b0000_0000_0011_0010_0011_0010_0010_0011_0010_0011_0011_0010_0011_0010_0010_0011_0010_0011_0000_0000;
+MapArray[14] = 80'b0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000;
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 //Position of Tank1, initialising at given position
 reg [9:0] Tank1_xPos = 32 + 4;
 reg [9:0] Tank1_yPos = 32 + 4;
@@ -69,13 +105,14 @@ reg [9:0] Tank1_xDivPos_1, Tank1_yDivPos_1;
 reg [9:0] Tank1_xPos2_Holder, Tank1_yPos2_Holder; 	//variable is Tank1_yPos and Tank1_xPos, both + TankWidth
 reg [9:0] Tank1_xDivPos_2, Tank1_yDivPos_2;			//Divided by 32
 
-//Following four arrays are identical
+
+//Following four arrays are identical, and are used for storing the type of block each corner of the map is in
 
 //Load in MapArray row for each tank corner position
 reg [0:79] Tank1Array_1 = 80'b0;
 //Store 4 1-bit value relating to position of the given corner
 reg Tank1Array_1_0, Tank1Array_1_1, Tank1Array_1_2, Tank1Array_1_3;
-//Store 4-bit value given from values above
+//Store nibble given from values above
 reg [3:0]  Tank1Array_X_1 = 4'b0;
 
 reg [0:79] Tank1Array_2 = 80'b0;
@@ -95,38 +132,45 @@ reg Tank1_Dead = 1'b0;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//Position of Tank2, initialising at given position
 reg [9:0] Tank2_xPos = 640 - 25 - 4 - 32;
 reg [9:0] Tank2_yPos = 480 - 25 - 4 - 32;	
-
+//Register for previous direction of tank - controls orientation of tank drawn, and direction of the bullet when it's fired.
 reg [2:0] PrevDirection_2     = 3'b000;
-	
-reg [9:0] Tank2_xDivPos_1, Tank2_yDivPos_1;
-reg [9:0] Tank2_xDivPos_2, Tank2_yDivPos_2;
-reg [9:0] Tank2_xPos2_Holder, Tank2_yPos2_Holder;
 
+//Variables to store x, y, x+w, and y+w - X and Y positions of each tank corner.	
+//		x position of left side, and y position of top side, with respect to screen position, divided by 32 to account for map resolution	
+reg [9:0] Tank2_xDivPos_1, Tank2_yDivPos_1;
+//		x position of right side, and y position of bottom side, with respect to screen position, divided by 32 to account for map resolution
+reg [9:0] Tank2_xPos2_Holder, Tank2_yPos2_Holder;	//Variable is Tank2_yPos anks Tank2_xPos, both with +TankWidth
+reg [9:0] Tank2_xDivPos_2, Tank2_yDivPos_2;
+
+//Following four arrays are identical, and are used for storing the type of block each corner of the map is in
+
+//Load in MapArray row for each tank corner position
 reg [0:79] Tank2Array_1 = 80'b0;
-reg [3:0]  Tank2Array_X_1 = 4'b0;
+//Store 4 1-bit values relating to position of given corner
 reg Tank2Array_1_0, Tank2Array_1_1, Tank2Array_1_2, Tank2Array_1_3;
+//Convert into a nibble
+reg [3:0]  Tank2Array_X_1 = 4'b0;
 
 reg [0:79] Tank2Array_2 = 80'b0;
-reg [3:0] Tank2Array_X_2 = 4'b0;
 reg Tank2Array_2_0, Tank2Array_2_1, Tank2Array_2_2, Tank2Array_2_3;
+reg [3:0] Tank2Array_X_2 = 4'b0;
 
 reg [0:79] Tank2Array_3 = 80'b0;
-reg [3:0] Tank2Array_X_3 = 4'b0;
 reg Tank2Array_3_0, Tank2Array_3_1, Tank2Array_3_2, Tank2Array_3_3;
+reg [3:0] Tank2Array_X_3 = 4'b0;
 
 reg [0:79] Tank2Array_4 = 80'b0;
-reg [3:0] Tank2Array_X_4 = 4'b0;
 reg Tank2Array_4_0, Tank2Array_4_1, Tank2Array_4_2, Tank2Array_4_3;
+reg [3:0] Tank2Array_X_4 = 4'b0;
 
+//Reg stores is Tank2 has been shot or not
 reg Tank2_Dead = 1'b0;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//Instantiating colour inputs
-
-wire [11:0] Colour_Data_Background;
-//Bottle M4 (.Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Background));
+//Instantiating sprites
 
 reg [9:0] Tank1_XInput, Tank1_YInput = 10'b0;	
 wire [11:0] Colour_Data_Tank1;
@@ -135,13 +179,12 @@ TankImage M5 (.Master_Clock_In(Master_Clock_In), .xInput(Tank1_XInput), .yInput(
 wire [11:0] Colour_Data_Explosion1;
 Explosion M13 (.Master_Clock_In(Master_Clock_In), .xInput(Tank1_XInput), .yInput(Tank1_YInput), .ColourData(Colour_Data_Explosion1));
 
-
 reg [9:0] Tank2_XInput, Tank2_YInput = 10'b0;	
 wire [11:0] Colour_Data_Tank2;
 TankImage M11 (.Master_Clock_In(Master_Clock_In), .xInput(Tank2_XInput), .yInput(Tank2_YInput), .ColourData(Colour_Data_Tank2));
 
-//wire [11:0] Colour_Data_Explosion2;
-//Explosion M14 (.Master_Clock_In(Master_Clock_In), .xInput(Tank2_XInput), .yInput(Tank2_YInput), .ColourData(Colour_Data_Explosion2));
+wire [11:0] Colour_Data_Explosion2;
+Explosion M14 (.Master_Clock_In(Master_Clock_In), .xInput(Tank2_XInput), .yInput(Tank2_YInput), .ColourData(Colour_Data_Explosion2));
 
 wire [11:0] Colour_Data_Brick;
 Brick_Block M6( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Brick));
@@ -158,55 +201,61 @@ Coin_Image M9( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(V
 	
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//Bullets?
+//Bullet1 Registers
 
+//Position
 reg [9:0] Bullet1_XInput, Bullet1_YInput = 10'd16;
+
+//Debounce/checking for rising edge of 'Fire' button being pressed
 reg Bullet1_Fired_prev_1 = 1'b0;
 reg Bullet1_Fired_prev_2 = 1'b0;
 reg Bullet1_Fired		 = 1'b0;
+
+//Direction of bullet travel
 reg [2:0] Bullet1_Dir    = 3'b000;
 
-reg [5:0] Bullet1_ClockDiv = 6'b0;
-reg [5:0] Bullet1_ClockCounter = 6'd30;
 	// Note - these are coded differently to the tank bounding boxes. Tanks are done at each corner, whereas this is done
-	//		at the centre only
-	
-reg [3:0] Bullet1Array_X = 4'b0;
-reg [0:79] Bullet1ArrayData_Y = 80'b0;
-reg Bullet1ArrayData_X_0, Bullet1ArrayData_X_1, Bullet1ArrayData_X_2, Bullet1ArrayData_X_3;
+	//		at the centre only due to its smaller size
 
+//X and Y Positions divided by 32
 reg [9:0] Bullet1_xDivPos, Bullet1_yDivPos = 10'b0;
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//Bullets?
+//Stores row of map that the bullet is positioned in	
+reg [0:79] Bullet1ArrayData_Y = 80'b0;
+//4 1-bit values relating to correct position
+reg Bullet1ArrayData_X_0, Bullet1ArrayData_X_1, Bullet1ArrayData_X_2, Bullet1ArrayData_X_3 = 1'b0;
+//Moved into a nibble
+reg [3:0] Bullet1Array_X = 4'b0;
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//Bullet2 Registers
+
+//Position
 reg [9:0] Bullet2_XInput, Bullet2_YInput = 10'd16;
+
+//Debounce and checking for rising edge of 'Fire' button being pressed
 reg Bullet2_Fired_prev_1 = 1'b0;
 reg Bullet2_Fired_prev_2 = 1'b0;
 reg Bullet2_Fired		 = 1'b0;
+
+//Direction of bullet travel
 reg [2:0] Bullet2_Dir    = 3'b000;
 
-reg [5:0] Bullet2_ClockDiv = 6'b0;
-reg [5:0] Bullet2_ClockCounter = 6'd30;
 	// Note - these are coded differently to the tank bounding boxes. Tanks are done at each corner, whereas this is done
 	//		at the centre only
 	
-reg [3:0] Bullet2Array_X = 4'b0;
+//X and Y Positions divided by 32	
+reg [9:0] Bullet2_xDivPos, Bullet2_yDivPos = 10'b0;	
+//Stores row of map that the bullet is positioned in
 reg [0:79] Bullet2ArrayData_Y = 80'b0;
+//4 1-bit values relating to map position
 reg Bullet2ArrayData_X_0, Bullet2ArrayData_X_1, Bullet2ArrayData_X_2, Bullet2ArrayData_X_3;
+//Moved into a nibble
+reg [3:0] Bullet2Array_X = 4'b0;
 
-reg [9:0] Bullet2_xDivPos, Bullet2_yDivPos = 10'b0;
-
-reg [9:0] xDivPos, yDivPos = 10'b0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-reg [0:79] MapArray [0:14];
-reg [0:79] MapArrayData_Y = 80'b0;
-reg [3:0]  MapArray_X = 4'b0;
-reg MapArrayData_X_3, MapArrayData_X_2, MapArrayData_X_1, MapArrayData_X_0;
-
-
 
 always @(posedge Master_Clock_In)	
 	begin
@@ -640,7 +689,7 @@ always @(posedge Master_Clock_In)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////  
                                     //Top left
-                                    Tank1Array_1   = MapArray[Tank1_yDivPos_1];// This is the array for the map containing the 'bottom left#' of the tank
+                                    Tank1Array_1   = MapArray[Tank1_yDivPos_1];		   // This is the array for the map containing the 'bottom left#' of the tank
                                     Tank1Array_1_3 = Tank1Array_1[4*Tank1_xDivPos_1  ];// This is bit 3 of [3:0] of the current position's status.
                                     Tank1Array_1_2 = Tank1Array_1[4*Tank1_xDivPos_1+1];// This is bit 2 of [3:0] of the current position's status.
                                     Tank1Array_1_1 = Tank1Array_1[4*Tank1_xDivPos_1+2];// This is bit 1 of [3:0] of the current position's status.v
@@ -1051,42 +1100,42 @@ always @(posedge Master_Clock_In)
                             //within tank bounding box, set image to tank
                             if ((Val_Col_In >= Tank1_yPos) & (Val_Col_In <= Tank1_yPos + TankWidth) & (Val_Row_In >= Tank1_xPos) & (Val_Row_In <= Tank1_xPos + TankWidth))
                                 begin
+									// If moving downwards, image is mirrored in x
+									if (PrevDirection_1 == Down_Direction)    
+										begin
+											Tank1_XInput = TankWidth - (Val_Row_In - Tank1_xPos)%TankWidth;
+											Tank1_YInput = TankWidth - (Val_Col_In - Tank1_yPos)%TankWidth;
+										end
+									// if moving left, image is flipped to horizontal direction
+									else if (PrevDirection_1 == Left_Direction)    
+										begin
+											Tank1_YInput = Val_Row_In - Tank1_xPos;
+											Tank1_XInput = Val_Col_In - Tank1_yPos;
+										end
+									// if moving right, image is flipped to horizontal, and then mirrored in y 
+									else if (PrevDirection_1 == Right_Direction)
+										begin
+											Tank1_YInput = TankWidth - (Val_Row_In - Tank1_xPos)%TankWidth;
+											Tank1_XInput = TankWidth - (Val_Col_In - Tank1_yPos)%TankWidth;
+										end
+									//If moving upwards, image is normal orientation
+									else
+										begin
+											Tank1_XInput = Val_Row_In - Tank1_xPos;
+											Tank1_YInput = Val_Col_In - Tank1_yPos;
+										end	
+
 									if (Tank1_Dead == 0)
                                         begin
-                                            //If moving upwards, image is normal orientation
-                                            if (PrevDirection_1 == Up_Direction)
-                                                begin
-                                                    Tank1_XInput = Val_Row_In - Tank1_xPos;
-                                                    Tank1_YInput = Val_Col_In - Tank1_yPos;
-                                                end
-                                            // If moving downwards, image is mirrored in x
-                                            else if (PrevDirection_1 == Down_Direction)    
-                                                begin
-                                                    Tank1_XInput = TankWidth - (Val_Row_In - Tank1_xPos)%TankWidth;
-                                                    Tank1_YInput = TankWidth - (Val_Col_In - Tank1_yPos)%TankWidth;
-                                                end
-                                            // if moving left, image is flipped to horizontal direction
-                                            else if (PrevDirection_1 == Left_Direction)    
-                                                begin
-                                                    Tank1_YInput = Val_Row_In - Tank1_xPos;
-                                                    Tank1_XInput = Val_Col_In - Tank1_yPos;
-                                                end
-                                            // if moving right, image is flipped to horizontal, and then mirrored in y 
-                                            else if (PrevDirection_1 == Right_Direction)
-                                                begin
-                                                    Tank1_YInput = TankWidth - (Val_Row_In - Tank1_xPos)%TankWidth;
-                                                    Tank1_XInput = TankWidth - (Val_Col_In - Tank1_yPos)%TankWidth;
-                                                end
-
                                             Red   = Colour_Data_Tank1[11:8];
                                             Green = Colour_Data_Tank1[ 7:4];
                                             Blue  = Colour_Data_Tank1[ 3:0];
                                         end
                                     else
                                         begin
-                                            Red = Colour_Data_Explosion1[11:8];
+                                            Red   = Colour_Data_Explosion1[11:8];
                                             Green = Colour_Data_Explosion1[7:4];                                        
-                                            Blue = Colour_Data_Explosion1[3:0];  
+                                            Blue  = Colour_Data_Explosion1[3:0];  
                                         end  
                                 end
 
@@ -1096,42 +1145,43 @@ always @(posedge Master_Clock_In)
                           //within tank bounding box, set image to tank
                             else if ((Val_Col_In >= Tank2_yPos) & (Val_Col_In <= Tank2_yPos + TankWidth) & (Val_Row_In >= Tank2_xPos) & (Val_Row_In <= Tank2_xPos + TankWidth))
                                 begin
-                                    if (Tank2_Dead == 0)
+
+									// If moving downwards, image is mirrored in x
+									if (PrevDirection_2 == Down_Direction)    
+										begin
+											Tank2_XInput = TankWidth - (Val_Row_In - Tank2_xPos)%TankWidth;
+											Tank2_YInput = TankWidth - (Val_Col_In - Tank2_yPos)%TankWidth;
+										end
+									// if moving left, image is flipped to horizontal direction
+									else if (PrevDirection_2 == Left_Direction)    
+										begin
+											Tank2_YInput = Val_Row_In - Tank2_xPos;
+											Tank2_XInput = Val_Col_In - Tank2_yPos;
+										end
+									// if moving right, image is flipped to horizontal, and then mirrored in y 
+									else if (PrevDirection_2 == Right_Direction)
+										begin
+											Tank2_YInput = TankWidth - (Val_Row_In - Tank2_xPos)%TankWidth;
+											Tank2_XInput = TankWidth - (Val_Col_In - Tank2_yPos)%TankWidth;
+										end
+									//If moving upwards, image is normal orientation
+									else
+										begin
+											Tank2_XInput = Val_Row_In - Tank2_xPos;
+											Tank2_YInput = Val_Col_In - Tank2_yPos;
+										end
+										
+                                    if ((Tank2_Dead == 0) & (Colour_Data_Tank2 == 12'hFFF))
                                         begin
-                                            //If moving upwards, image is normal orientation
-                                            if (PrevDirection_2 == Up_Direction)
-                                                begin
-                                                    Tank2_XInput = Val_Row_In - Tank2_xPos;
-                                                    Tank2_YInput = Val_Col_In - Tank2_yPos;
-                                                end
-                                            // If moving downwards, image is mirrored in x
-                                            else if (PrevDirection_2 == Down_Direction)    
-                                                begin
-                                                    Tank2_XInput = TankWidth - (Val_Row_In - Tank2_xPos)%TankWidth;
-                                                    Tank2_YInput = TankWidth - (Val_Col_In - Tank2_yPos)%TankWidth;
-                                                end
-                                            // if moving left, image is flipped to horizontal direction
-                                            else if (PrevDirection_2 == Left_Direction)    
-                                                begin
-                                                    Tank2_YInput = Val_Row_In - Tank2_xPos;
-                                                    Tank2_XInput = Val_Col_In - Tank2_yPos;
-                                                end
-                                            // if moving right, image is flipped to horizontal, and then mirrored in y 
-                                            else if (PrevDirection_2 == Right_Direction)
-                                                begin
-                                                    Tank2_YInput = TankWidth - (Val_Row_In - Tank2_xPos)%TankWidth;
-                                                    Tank2_XInput = TankWidth - (Val_Col_In - Tank2_yPos)%TankWidth;
-                                                end
-                    
-                                            Green = Colour_Data_Tank2[11:8];
-                                            Red   = Colour_Data_Tank2[ 7:4];
-                                            Blue  = Colour_Data_Tank2[ 3:0];
+                                            Green = Colour_Data_Tank2[11:8]; //To change the colour of the tank, the Green and Red colour
+                                            Red   = Colour_Data_Tank2[ 7:4]; //		for each pixel is swapped.
+                                            Blue  = Colour_Data_Tank2[ 3:0]; 
                                         end
                                     else
                                         begin
-                                            Red     = Colour_Data_Explosion1[11:8];//############
-                                            Green   = Colour_Data_Explosion1[7:4];                                        
-                                            Blue    = Colour_Data_Explosion1[3:0];  
+                                            Red     = Colour_Data_Explosion2[11:8];
+                                            Green   = Colour_Data_Explosion2[ 7:4];                                        
+                                            Blue    = Colour_Data_Explosion2[ 3:0];  
                                         end 
                                 end
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
