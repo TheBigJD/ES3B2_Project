@@ -179,25 +179,32 @@ wire [11:0] Colour_Data_Tank1;
 //Instantiated module, returns colour value dependant on input
 TankImage M5 (.Master_Clock_In(Master_Clock_In), .xInput(Tank1_XInput), .yInput(Tank1_YInput), .ColourData(Colour_Data_Tank1));
 
+//Explosion sprite
 wire [11:0] Colour_Data_Explosion1;
 Explosion M13 (.Master_Clock_In(Master_Clock_In), .xInput(Tank1_XInput), .yInput(Tank1_YInput), .ColourData(Colour_Data_Explosion1));
 
+//Tank 2 sprite
 reg [9:0] Tank2_XInput, Tank2_YInput = 10'b0;	
 wire [11:0] Colour_Data_Tank2;
 TankImage M11 (.Master_Clock_In(Master_Clock_In), .xInput(Tank2_XInput), .yInput(Tank2_YInput), .ColourData(Colour_Data_Tank2));
 
+//Second explosion sprite
 wire [11:0] Colour_Data_Explosion2;
 Explosion M14 (.Master_Clock_In(Master_Clock_In), .xInput(Tank2_XInput), .yInput(Tank2_YInput), .ColourData(Colour_Data_Explosion2));
 
+//Sprite for breakable brick
 wire [11:0] Colour_Data_Brick;
 Brick_Block M6( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Brick));
 
+//Alternative coin sprite
 wire [11:0] Colour_Data_Nyan;
 MysteryImage M7( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Nyan));
 
+//Sprite for unbreakable block
 wire [11:0] Colour_Data_Solid_Block;
 Solid_block M8( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Solid_Block));
 	
+//Sprite for normal coins
 wire [11:0] Colour_Data_Coin;
 Coin_Image M9( .Master_Clock_In(Master_Clock_In), .xInput(Val_Row_In), .yInput(Val_Col_In), .ColourData(Colour_Data_Coin));
 
@@ -289,7 +296,7 @@ always @(posedge Master_Clock_In)
                 Tank2_xPos 			= 579;
                 Tank2_yPos 			= 419;
 							
-				//Draw gray screen while in reset				    
+				//Draw grey screen while in reset				    
                 Red   = 4'h2;     
                 Blue  = 4'h2;
                 Green = 4'h2;
@@ -303,6 +310,7 @@ always @(posedge Master_Clock_In)
 				//Maps care chosen by a 3-bit value dependant on switches on the board.
 				case ({LevelSwitch_2, LevelSwitch_1, LevelSwitch_0})
 				    6: begin
+							// Presentation start screen
                             MapArray[ 0] = 80'h33333333333333333333;
                             MapArray[ 1] = 80'h31112221131132221113;
                             MapArray[ 2] = 80'h33132321331312221313;
@@ -451,8 +459,7 @@ always @(posedge Master_Clock_In)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 				//Bullet controls
-
-										
+										// Record 2 previous bullet fired states for each tank
 									
 										Bullet1_Fired_prev_2 = Bullet1_Fired_prev_1;
 										Bullet1_Fired_prev_1 = Fire1;
@@ -947,12 +954,14 @@ always @(posedge Master_Clock_In)
 									
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-										//If no other conditions are met, 
+										//If no other conditions are met, move tank depending on buttons pressed.
 										else
-											begin
-												MoveSpeed = 1 + MoveSpeed_0 + MoveSpeed_1 * 2;
-												//Move depending on buttons pressed.
-												if 		(Up1    == 1)
+											begin 
+												// Get movement speed from switch inputs
+												MoveSpeed = 1 + MoveSpeed_0 + MoveSpeed_1 * 2;			
+												
+												//Set current direction and previous direction depending on direction.
+												if (Up1 == 1)
 													begin
 														Tank1_yPos     = Tank1_yPos - MoveSpeed;
 														PrevDirection_1 = Up_Direction;
@@ -1080,7 +1089,7 @@ always @(posedge Master_Clock_In)
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 										
-										//If Corners are in a 'Coin' block, 'pick up' block by setting MapArray value to 4'b0000 and add 1 to coin value
+										//If any of the 4 corners are in a 'Coin' block, 'pick up' block by setting MapArray value to 4'b0000 and add 1 to coin value
 										else if (Tank2Array_X_1 == 3)
 											begin
 												MapArray[Tank2_yDivPos_1][4 * Tank2_xDivPos_1   ] = 1'b0;	
@@ -1298,31 +1307,38 @@ always @(posedge Master_Clock_In)
 										xDivPos = ((Val_Row_In[9:5])%20);
 										yDivPos = ((Val_Col_In[9:5])%15);
 									
-										MapArrayData_Y   = MapArray[yDivPos];
-										MapArrayData_X_3 = MapArrayData_Y[4*xDivPos];
-										MapArrayData_X_2 = MapArrayData_Y[4*xDivPos + 1];
-										MapArrayData_X_1 = MapArrayData_Y[4*xDivPos + 2];
-										MapArrayData_X_0 = MapArrayData_Y[4*xDivPos + 3];
+										MapArrayData_Y   = MapArray[yDivPos];				// This is the array for the map containing
+										MapArrayData_X_3 = MapArrayData_Y[4*xDivPos];       // This is bit 3 of [3:0] of the map colour array
+										MapArrayData_X_2 = MapArrayData_Y[4*xDivPos + 1];   // This is bit 2 of [3:0] of the map colour array
+										MapArrayData_X_1 = MapArrayData_Y[4*xDivPos + 2];   // This is bit 1 of [3:0] of the map colour array
+										MapArrayData_X_0 = MapArrayData_Y[4*xDivPos + 3];   // This is bit 0 of [3:0] of the map colour array
 									
+										// Concatenate all 4 bits of the map 
 										MapArray_X = {MapArrayData_X_3, MapArrayData_X_2, MapArrayData_X_1, MapArrayData_X_0 };  
 									
 										case (MapArray_X)
+											
+											//
 											4'h0:begin  Red   = 4'hF; 
 														Green = 4'hF; 
 														Blue  = 4'hF;
 												end
-										
+											
+											// Code for unbreakable blocks
 											4'h1:begin 	Red   = Colour_Data_Solid_Block[11:8];
 														Green = Colour_Data_Solid_Block[ 7:4];
 														Blue  = Colour_Data_Solid_Block[ 3:0];
 												 end
 											 
+											// Code for breakable brick
 											4'h2:begin  Red   = Colour_Data_Brick[11:8];
 														Green = Colour_Data_Brick[ 7:4];
 														Blue  = Colour_Data_Brick[ 3:0];
 												 end	
 											 
+											// Code what option coin blocka are set to
 											4'h3:begin 
+													
 													if (ColourSwitch_1 == 0)
 														begin
 															Red 	= Colour_Data_Coin[11:8];
@@ -1337,11 +1353,13 @@ always @(posedge Master_Clock_In)
 														 end 
 												end
 										
+											// Placeholders for additional map blocks
 											4'h4:     begin	Red = 4'hF; Green = 4'h4; Blue = 4'h4; end
 											4'h5:     begin	Red = 4'hF; Green = 4'h4; Blue = 4'h4; end
 											4'h6:     begin	Red = 4'hF; Green = 4'h4; Blue = 4'h4; end
 											4'h7:     begin	Red = 4'hF; Green = 4'h4; Blue = 4'h4; end
 										
+											// Default to black background
 											default:  begin Red = 4'h8; Green = 4'h8; Blue = 4'h8;end
 										
 										endcase
