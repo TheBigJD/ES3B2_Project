@@ -590,11 +590,19 @@ always @(posedge Master_Clock_In)
 										
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////																				
+										
+										//Rising edge of 'Fire' button input, AND if bullet isn't already in motion
 										if ((Fire2 == 1'b1) & (Bullet2_Fired_prev_2 == 1'b0) & (Bullet2_Fired == 0))
 											begin
+												//This loop runs only once given condition is cancelled out on first line whatever happens with the Fire button, 
+												//		and it enables second loop instead
 												Bullet2_Fired = 1'b1;
+												
+												//Direction of bullet is dependent on tank's direction
 												Bullet2_Dir   = PrevDirection_2;
 											
+												//Starting position of bullet is dependant on direction
+												//Starts on side of tank that it should aim for, with a boundary limit of (BulletWidth + 3)
 												case (Bullet2_Dir)
 													Up_Direction:
 														begin
@@ -620,37 +628,47 @@ always @(posedge Master_Clock_In)
 															Bullet2_YInput = Tank2_yPos - (BulletWidth + 3) + TankWidth;
 														end
 													
+													//If something happens to cause an error, bullet firing is cancelled
 													default: Bullet2_Fired = 1'b0;
 												endcase
 											end
 										
 										else if (Bullet2_Fired == 1)
 											begin
+												//Divide X and Y position by 32 by taking 5 MSBs. %20 and %15 to ensure within range of MapArray
 												Bullet2_xDivPos = (Bullet2_XInput[9:5])%20;
 												Bullet2_yDivPos = (Bullet2_YInput[9:5])%15;
 											
+												//Taking row of MapArray that bullet is in
 												Bullet2ArrayData_Y   = MapArray[Bullet2_yDivPos];
+												
+												//Getting 4 1-bit values corresponding to current X position block
 												Bullet2ArrayData_X_3 = Bullet2ArrayData_Y[4* (Bullet2_xDivPos)];
 												Bullet2ArrayData_X_2 = Bullet2ArrayData_Y[4* (Bullet2_xDivPos) + 1];
 												Bullet2ArrayData_X_1 = Bullet2ArrayData_Y[4* (Bullet2_xDivPos) + 2];
 												Bullet2ArrayData_X_0 = Bullet2ArrayData_Y[4* (Bullet2_xDivPos) + 3];
 											
+												//Concatenating into a nibble
 												Bullet2Array_X = {Bullet2ArrayData_X_3, Bullet2ArrayData_X_2, Bullet2ArrayData_X_1, Bullet2ArrayData_X_0 };
 											
+												//If bullet is outside of screen, reset and cancel bullet
 												if ((Bullet2_XInput <= BulletWidth) | (Bullet2_YInput <= BulletWidth) | (Bullet2_XInput >= Pixels_Horiz - BulletWidth) | (Bullet2_YInput >= Pixels_Vert - BulletWidth))
 													begin
 														Bullet2_XInput = 10'd16;
 														Bullet2_YInput = 10'd16;
 														Bullet2_Fired  =  1'b0;
 													end
-											
+												
+												//If bullet hits a block
 												else if ((Bullet2Array_X == 1) | (Bullet2Array_X == 2))
 													begin
+														// Cancel bullet
 														Bullet2_XInput = 10'd16;
 														Bullet2_YInput = 10'd16;
 														Bullet2_Fired  =  1'b0;
-									
-														if (Bullet2Array_X == 2)
+															
+															//If Block hit was a breakable block, "break" it by setting value of block to 0 (transparent)
+															if (Bullet2Array_X == 2)
 															begin
 																MapArray[Bullet2_yDivPos][4 * Bullet2_xDivPos	 ] = 1'b0;	
 																MapArray[Bullet2_yDivPos][4 * Bullet2_xDivPos + 1] = 1'b0;
@@ -658,28 +676,39 @@ always @(posedge Master_Clock_In)
 																MapArray[Bullet2_yDivPos][4 * Bullet2_xDivPos + 3] = 1'b0;
 															end
 													end
+													
+												//If Bullet1 is within enemy tank's bounding box
 												else if (((Bullet2_XInput >= Tank1_xPos) & (Bullet2_XInput <= Tank1_xPos + TankWidth))
 														&((Bullet2_YInput >= Tank1_yPos) & (Bullet2_YInput <= Tank1_yPos + TankWidth)))
 													begin
+													   //Signal Tank1 is dead, and run commands related further down logic
 													   Tank1_Dead = 1'b1;
+													   
+													   //Add 1 to deaths
 													   P1_Deaths = P1_Deaths + 1;
-
+														
+													   //Reset Bullet1 values
 													   Bullet2_XInput = 10'd16;
 													   Bullet2_YInput = 10'd16;
 													   Bullet2_Fired  =  1'b0;
 													end
-
+													
+												//If Bullet2 is within 'Coin' or 'Nothing' block
 												else if ((Bullet2Array_X == 3) | (Bullet2Array_X == 0))
 													begin    		                                            
 														  case (Bullet2_Dir)
+															//Move with speed of 5 in direction of travel
 															Up_Direction    : Bullet2_YInput = Bullet2_YInput - 5;
 															Down_Direction  : Bullet2_YInput = Bullet2_YInput + 5;
 															Left_Direction  : Bullet2_XInput = Bullet2_XInput - 5;
 															Right_Direction : Bullet2_XInput = Bullet2_XInput + 5;
+															
+															//Default prevents errors given 4 options of a 3-bit (8-option) value are defined
 															default: Bullet2_Fired = 1'b0;
 														endcase		
 													end
 												
+												//If something else happens (mistakenly), reset Bullet2 values
 												else
 													begin
 														Bullet2_YInput = 10'd16;
@@ -978,8 +1007,12 @@ always @(posedge Master_Clock_In)
 										
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////                                                
+										
+										//If Tank1 has been shot
 										else if (Tank2_Dead == 1)
 											begin
+												
+												//Begin a 1s timer until position reset, preventing movement until timer ends
 												if (Dead_Counter == 60)
 													begin
 														Tank2_xPos = 640 - (25 + 32 + 4);
@@ -1015,29 +1048,39 @@ always @(posedge Master_Clock_In)
 										// if top left is in boundary
 										else if ((Tank2Array_X_1 == 1) | (Tank2Array_X_1 == 2))
 											begin
+												
+												//Move diagonally by #pixels dependent on movespeed
 												Tank2_yPos = Tank2_yPos + MoveSpeed;
 												Tank2_xPos = Tank2_xPos + MoveSpeed;
 											end
 										// if top right is in boundary	
 										else if ((Tank2Array_X_2 == 1) | (Tank2Array_X_2 == 2))
 											begin
+											
+												//Move diagonally by #pixels dependent on movespeed
 												Tank2_yPos = Tank2_yPos + MoveSpeed;
 												Tank2_xPos = Tank2_xPos - MoveSpeed;
 											end	
 										// if bottom left is in boundary	
 										else if ((Tank2Array_X_3 == 1) | (Tank2Array_X_3 == 2))
 											begin
+											
+												//Move diagonally by #pixels dependent on movespeed
 												Tank2_yPos = Tank2_yPos - MoveSpeed;
 												Tank2_xPos = Tank2_xPos + MoveSpeed;
 											end	
 										// if bottom right is in boundary	
 										else if ((Tank2Array_X_4 == 1) | (Tank2Array_X_4 == 2))
 											begin
+											
+												//Move diagonally by #pixels dependent on movespeed
 												Tank2_yPos = Tank2_yPos - MoveSpeed;
 												Tank2_xPos = Tank2_xPos - MoveSpeed;
 											end	                      
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+										
+										//If Corners are in a 'Coin' block, 'pick up' block by setting MapArray value to 4'b0000 and add 1 to coin value
 										else if (Tank2Array_X_1 == 3)
 											begin
 												MapArray[Tank2_yDivPos_1][4 * Tank2_xDivPos_1   ] = 1'b0;	
@@ -1079,9 +1122,10 @@ always @(posedge Master_Clock_In)
 											end
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////         
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////	
+										//If no other conditions are met, 
 										else
 											begin
-											//Finally getting to the actual tank controls
+											//Move depending on buttons pressed.
 													 if (Up2    == 1)
 													begin
 														Tank2_yPos     = Tank2_yPos - MoveSpeed;
@@ -1206,12 +1250,15 @@ always @(posedge Master_Clock_In)
 												Tank2_YInput = Val_Col_In - Tank2_yPos;
 											end
 										
+										//If the tank is alive, show a tank image
 										if ((Tank2_Dead == 0) & (Colour_Data_Tank2 != 12'hFFF))
 											begin
 												Green = Colour_Data_Tank2[11:8]; //To change the colour of the tank, the Green and Red colour
 												Red   = Colour_Data_Tank2[ 7:4]; //		for each pixel is swapped.
 												Blue  = Colour_Data_Tank2[ 3:0]; 
 											end
+											
+										//Else show an explosion image
 										else
 											begin
 												Red     = Colour_Data_Explosion2[11:8];
