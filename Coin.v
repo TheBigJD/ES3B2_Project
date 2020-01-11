@@ -9,7 +9,6 @@ module Coin_Image(
 	output reg [11:0] ColourData = 12'h000  // Outputting chosen colour in rgb values (3x 4-bit)
 );                                          
                                             
-(* rom_style = "block" *)                   // Store array in block ram
                                             
 reg [19:0] Inputs = 20'd0;                  // Initialise combined X and Y input array
                                             

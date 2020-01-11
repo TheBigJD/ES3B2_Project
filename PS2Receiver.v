@@ -26,21 +26,12 @@ module PS2Receiver(
               backspa  = 8'b01100110,
               STOP     = 8'hF0;
     
-    
-    wire keyb_clk_debounced, kdata_debounced;   // Output wires from debounce module
+
     reg [7:0]datacur = 8'd0;                           // Register to store latest key press   
     reg [3:0]count = 0;                             // Counter to ensure all 10 data bits from keyboard are read 
     reg flag;                                   // Set high when keycode has been read in
- 
-//// Debounce both data and clock inputs coming from keyboard
-//debouncer debounce(  
-//    .clk(clk),
-//    .In0(keyb_clk),
-//    .In1(kdata),
-//    .Out0(keyb_clk_debounced),
-//    .Out1(kdata_debounced)
-//);
-    
+
+
 always@(negedge(keyb_clk)) // Sample on negative edge as per PS/2 interface protocol
 begin 
     case(count)

@@ -13,7 +13,7 @@ module seginterface(
     always @(posedge clk)
         clk_count <= clk_count + 1'b1;
     
-    assign led_clk = clk_count[16];
+    assign led_clk = clk_count[8];
     
     reg [7:0] led_strobe = 8'b11111110;
     always @(posedge led_clk)

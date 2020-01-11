@@ -10,7 +10,6 @@ module NyanCat(
                                                     
 );                                                  
                                                     
-(* rom_style = "block" *)                           // Store array in block ram
                                                     
 reg [19:0] Inputs = 20'd0;                          // Initialise combined X and Y input array
                                                     
