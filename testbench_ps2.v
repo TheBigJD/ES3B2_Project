@@ -1,14 +1,14 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 `timescale 1ns/100ps
 
-module Testbench();
+module Testbench_PS2();
 
 	reg Clock = 1'b0;
 	reg Keyb_clk = 1'b0;
 	reg kdata = 1'b0;
-	reg [4:0] p1keys;
-	reg [4:0] p2keys;
-	reg [7:0] debugLEDs;
+	wire [4:0] P1keys;
+	wire [4:0] P2keys;
+	wire [7:0] debugLEDs;
 
 	reg [0:7] Keypress = 8'h75;
 	reg [7:0] ii = 8'b0;
@@ -19,8 +19,8 @@ module Testbench();
 	PS2Receiver UUT ( 	.clk(Clock),
 						.keyb_clk(Keyb_clk), 
 						.kdata(kdata), 
-						.p1keys(p1keys), 
-						.p2keys(p2keys), 
+						.p1keys(P1keys), 
+						.p2keys(P2keys), 
 						.debugLEDs(debugLEDs)
 					);
 ////////////////////////////////////////////////////////////////////////////////////////  
@@ -42,25 +42,35 @@ module Testbench();
 	always
 		begin
 			#1000 //Code waits for 1000 clock cycles, 10us, before beginning simulation
-			
-			//for loop generates keyboard clock and outputs data giving data output of 'Keypress', 
-			//		
+			         //for loop generates keyboard clock and outputs data giving data output of 'Keypress', 
+	
 			for (ii=0; ii<8; ii=ii+1)
 				begin
 					//Wait
 					#1000
-					
 					//Rise clock, change data
 					Keyb_clk 	= 1'b1;
-					kdata 		= Keypress[ii];
-					
+					kdata 		= Keypress[7-ii];
 					//Wait
 					#1000
-					
 					//Lower clock
 					Keyb_clk = 1'b0;
 				end
-			end
+				
+			#2500	
+			
+            if (P1keys == 5'b00001)
+                begin
+                    $display("Success");
+                    $finish;
+                end
+            else
+                begin
+                    $display("Fail");
+                    $finish;
+                end
+             
+         end
 ////////////////////////////////////////////////////////////////////////////////////////
 endmodule
 

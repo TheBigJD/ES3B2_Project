@@ -9,7 +9,7 @@ module VGA_Draw(
 //Signals to VGA output    
     output reg [3:0] Red   = 4'h0, 
 	output reg [3:0] Blue  = 4'h0, 
-    output reg [3:0] Green = 4'h0
+    output reg [3:0] Green = 4'h0,
 
 //Tank control inputs
     input Up1, Down1, Left1, Right1, Fire1,
@@ -23,8 +23,8 @@ module VGA_Draw(
 //Signals to display on seven segment displays
 	output reg [7:0] CoinValue_1 	= 8'd0,
 	output reg [7:0] CoinValue_2 	= 8'd0,
-	output reg [7:0] P1_Deaths 		= 8'd0,
-	output reg [7:0] P2_Deaths 		= 8'd0,
+	output reg [7:0] P1_Deaths 		= 8'd5,
+	output reg [7:0] P2_Deaths 		= 8'd5
 
 );
 

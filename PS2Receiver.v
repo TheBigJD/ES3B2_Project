@@ -28,47 +28,44 @@ module PS2Receiver(
     
     
     wire keyb_clk_debounced, kdata_debounced;   // Output wires from debounce module
-    reg [7:0]datacur;                           // Register to store latest key press   
-    reg [3:0]count;                             // Counter to ensure all 10 data bits from keyboard are read 
+    reg [7:0]datacur = 8'd0;                           // Register to store latest key press   
+    reg [3:0]count = 0;                             // Counter to ensure all 10 data bits from keyboard are read 
     reg flag;                                   // Set high when keycode has been read in
  
-// Debounce both data and clock inputs coming from keyboard
-debouncer debounce(  
-    .clk(clk),
-    .In0(keyb_clk),
-    .In1(kdata),
-    .Out0(keyb_clk_debounced),
-    .Out1(kdata_debounced)
-);
+//// Debounce both data and clock inputs coming from keyboard
+//debouncer debounce(  
+//    .clk(clk),
+//    .In0(keyb_clk),
+//    .In1(kdata),
+//    .Out0(keyb_clk_debounced),
+//    .Out1(kdata_debounced)
+//);
     
-always@(negedge(keyb_clk_debounced)) // Sample on negative edge as per PS/2 interface protocol
+always@(negedge(keyb_clk)) // Sample on negative edge as per PS/2 interface protocol
 begin 
     case(count)
     0:;								// Start bit - Transmission starts when LOW signal detected (line pulled up to VDD)
-    1:datacur[0]<=kdata_debounced;  // Next 8 bits on neg clock edges are data bits, load into datacur array
-    2:datacur[1]<=kdata_debounced;
-    3:datacur[2]<=kdata_debounced;
-    4:datacur[3]<=kdata_debounced;
-    5:datacur[4]<=kdata_debounced;
-    6:datacur[5]<=kdata_debounced;
-    7:datacur[6]<=kdata_debounced;
-    8:datacur[7]<=kdata_debounced;
+    1:datacur[0]<=kdata;  // Next 8 bits on neg clock edges are data bits, load into datacur array
+    2:datacur[1]<=kdata;
+    3:datacur[2]<=kdata;
+    4:datacur[3]<=kdata;
+    5:datacur[4]<=kdata;
+    6:datacur[5]<=kdata;
+    7:datacur[6]<=kdata;
+    8:datacur[7]<=kdata;
     9:flag<=1'b1;					// Parity bit - when read set flag high
     10:flag<=1'b0; 					// Stop bit
     
     endcase
         if(count<=9)    			// Loop to ensure datacur is reset after 10 bits
-			begin
+
 				count<=count+1;
-			end
+
         else if(count==10) 
-			begin 
+
 				count<=0;			
-			end					
-			        
+					        
 end
- // TODO currently pressed buttons don't lose value when keys are let go
- //as the routine below is not called (flag only high when keys are pressed)
 
 always @(posedge flag)          // Only start shifting data out after flag has been high and low (indicating keyboard data has been loaded in)
 begin 		            

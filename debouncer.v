@@ -9,14 +9,14 @@ module debouncer(
     input clk,
     input In0, // Two inputs for keyboard clock and keyboard data
     input In1,
-    output reg Out0, // Two corresponding outputs
-    output reg Out1
+    output reg Out0 = 0, // Two corresponding outputs
+    output reg Out1 = 0
     );
     
 	parameter delay_time = 19; // Specifies number of clock cycles to delay for
-    reg [4:0]count0, count1; // Counter reg
+    reg [4:0]count0, count1 = 0; // Counter reg
     reg Iv0=0,Iv1=0;
-    reg out0, out1;
+    reg out0, out1 = 0;
     
 always@(posedge(clk))
 begin
@@ -30,7 +30,7 @@ begin
 		end
 	else 
 		begin
-			count0<= "00000"; // Reset counter to 0
+			count0<= 5'b0; // Reset counter to 0
 			Iv0<=In0; 		// Assign Iv0 to current value so debounce occurs on both pos and neg edges of clock
 		end
 		
@@ -45,7 +45,7 @@ begin
 		end
 	else 
 		begin
-			count1<= "00000";
+			count1<= 5'b0;
 			Iv1<=In1;
 		end
 end

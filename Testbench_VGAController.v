@@ -1,23 +1,26 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 `timescale 1ns/100ps
 
-module Testbench();
+module Testbench_VGA();
 
-	reg Clock 					  =  1'b0;
-	reg Reset 					  =  1'b0;
-	reg Sync_Horiz, Sync_Vert 	  =  1'b0;
-	reg Disp_Ena 				  =  1'b0;
-	reg [9:0] Val_Col, Val_Row 	  = 10'b0;	
+	reg Clock 					   =  1'b0;
+	reg Reset 					   =  1'b0;
+	wire Sync_Horiz                =  1'b0;
+	wire Sync_Vert 	               =  1'b0;
+	wire Disp_Ena 				   =  1'b0;
+	wire [9:0] Val_Col             = 10'b0;
+	
+	wire [9:0] Val_Row 	           = 10'b0;	
 	
 	reg [9:0]  Counter_Horiz 	  = 20'd0;
 	reg [19:0] Counter_Vert 	  = 20'd0;
-	reg Horiz_Rising, Vert_Rising =  1'b0;
+	reg Horiz_Rising = 1'b0;
+	reg Vert_Rising =  1'b0;
 	
 	
 ////Instantiating module to test, connecting driven inputs to TB code and outputting to
 //		reg values to show outputs.
-
-VGA_Controller UUT 
+VGA_Control UUT 
 ( 
 	.Master_Clock_In(Clock),	 	.Reset_N_In(Reset), 		// Main control signals Clock and Reset
 	.Sync_Horiz_Out(Sync_Horiz), 	.Sync_Vert_Out(Sync_Vert), 	// Sync signals to signal to display 
@@ -52,13 +55,13 @@ VGA_Controller UUT
 			
 			if ((Sync_Horiz == 1) & (Horiz_Rising == 0))
 				begin
-					$display("Horiz Time = ", Counter_Horiz * 1ns);
+					$display("Horiz Time = ", Counter_Horiz);
 					Counter_Horiz = 0;
 				end
 			
 			if ((Sync_Vert == 1)  & (Vert_Rising == 0))
 				begin
-					$display("Vert Time = ", Counter_Vert * 1ns);
+					$display("Vert Time = ", Counter_Vert);
 					Counter_Vert = 0;
 				end
 				
