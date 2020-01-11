@@ -1,12 +1,13 @@
-`timescale 1ns / 1ps
-
+/////////////////////////////////////////////////////////////////////////////
+//Clock divisor module. Divides 100MHz clock to 25MHz
+/////////////////////////////////////////////////////////////////////////////
 
 module Clock_Div(
-        input Master_Clock_In,
-        output Clock_Out
+        input Master_Clock_In,                      //100MHz in
+        output Clock_Out                            //25MHz out
     );
     
-    reg [2:0] Clock_Counter = 4'd0;
+    reg [2:0] Clock_Counter = 4'd0;                 //
     reg Clock = 0;
     
     always @(posedge   Master_Clock_In)
